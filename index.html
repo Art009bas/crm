@@ -3,1084 +3,995 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM System | Стартап</title>
+    <title>CRM для учёта клиентов</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
+        @keyframes slideIn {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
         .fade-in {
             animation: fadeIn 0.3s ease-out forwards;
         }
         
-        .status-lead {
-            background-color: #e0f2fe;
-            color: #0369a1;
-        }
-        
-        .status-prospect {
-            background-color: #f0f9ff;
-            color: #0ea5e9;
-        }
-        
-        .status-trial {
-            background-color: #ecfccb;
-            color: #65a30d;
-        }
-        
-        .status-customer {
-            background-color: #dcfce7;
-            color: #16a34a;
-        }
-        
-        .status-churned {
-            background-color: #fee2e2;
-            color: #dc2626;
-        }
-        
-        .funnel-stage {
-            position: relative;
-        }
-        
-        .funnel-stage:after {
-            content: "";
-            position: absolute;
-            right: -10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
-            border-left: 10px solid #e5e7eb;
-        }
-        
-        .funnel-stage:last-child:after {
-            display: none;
-        }
-        
-        .progress-bar {
-            height: 6px;
-            border-radius: 3px;
-            background-color: #e5e7eb;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            border-radius: 3px;
-            background-color: #3b82f6;
-            transition: width 0.5s ease;
-        }
-        
-        .customer-card {
-            transition: all 0.2s;
-        }
-        
-        .customer-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        
-        @media (max-width: 640px) {
-            .funnel-container {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                padding-bottom: 20px;
-            }
-            
-            .funnel-stages {
-                min-width: 500px;
-            }
-            
-            .customer-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* Анимация для уведомлений */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
+        .slide-in {
             animation: slideIn 0.3s ease-out forwards;
         }
         
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .status-badge {
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
         
-        .notification.hide {
-            animation: slideOut 0.3s ease-out forwards;
+        .status-badge:hover {
+            transform: scale(1.05);
         }
         
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .collapsible-content.expanded {
+            max-height: 1000px;
+        }
+        
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 18px;
+            top: 32px;
+            height: calc(100% - 32px);
+            width: 2px;
+            background-color: #e5e7eb;
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Уведомления -->
-    <div id="notification-area"></div>
-    
-    <div class="container mx-auto px-4 py-6 max-w-7xl">
-        <!-- Шапка CRM -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Шапка приложения -->
+        <header class="mb-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800">
                     <i class="fas fa-users text-blue-500 mr-3"></i>
-                    CRM System
+                    CRM light
                 </h1>
-                <p class="text-gray-500 mt-1">Управление клиентами и воронкой продаж</p>
-            </div>
-            
-            <div class="flex items-center space-x-4 w-full md:w-auto">
-                <button id="add-customer" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full md:w-auto">
+                <button id="new-client-btn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center">
                     <i class="fas fa-plus mr-2"></i> Новый клиент
                 </button>
-                <button id="export-data" class="px-4 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 w-full md:w-auto">
-                    <i class="fas fa-file-export mr-2"></i> Экспорт
+            </div>
+            <p class="text-gray-500 mt-2">Для учёта клиентов</p>
+        </header>
+        
+        <!-- Основной контент -->
+        <main>
+            <!-- Фильтры и поиск -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6 fade-in">
+                <div class="p-4 border-b border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm mb-1">Статус</label>
+                            <select id="status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                <option value="all">Все</option>
+                                <option value="new">Новый</option>
+                                <option value="contacted">Контакт</option>
+                                <option value="proposal">Предложение</option>
+                                <option value="negotiation">Переговоры</option>
+                                <option value="closed">Закрыт</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm mb-1">Источник</label>
+                            <select id="source-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                <option value="all">Все</option>
+                                <option value="website">Сайт</option>
+                                <option value="social">Соцсети</option>
+                                <option value="recommendation">Рекомендация</option>
+                                <option value="ad">Реклама</option>
+                                <option value="other">Другое</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm mb-1">Дата с</label>
+                            <input type="date" id="date-from" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm mb-1">Поиск</label>
+                            <div class="relative">
+                                <input type="text" id="search" placeholder="Имя, телефон, email..." class="w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Статистика -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 fade-in">
+                <div class="bg-white rounded-xl shadow-md p-4">
+                    <div class="text-2xl font-bold text-blue-600" id="total-clients">0</div>
+                    <div class="text-gray-600 text-sm">Всего клиентов</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4">
+                    <div class="text-2xl font-bold text-green-600" id="new-clients">0</div>
+                    <div class="text-gray-600 text-sm">Новые</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4">
+                    <div class="text-2xl font-bold text-yellow-600" id="active-clients">0</div>
+                    <div class="text-gray-600 text-sm">Активные</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4">
+                    <div class="text-2xl font-bold text-purple-600" id="proposal-clients">0</div>
+                    <div class="text-gray-600 text-sm">Предложения</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4">
+                    <div class="text-2xl font-bold text-red-600" id="closed-clients">0</div>
+                    <div class="text-gray-600 text-sm">Закрытые</div>
+                </div>
+            </div>
+            
+            <!-- Список клиентов -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden fade-in">
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-semibold text-gray-800">
+                            <i class="fas fa-list-ul text-blue-500 mr-2"></i>
+                            Список клиентов
+                        </h2>
+                        <div class="text-sm text-gray-500" id="clients-count">Показано 0 из 0</div>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Клиент</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Контакты</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Источник</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="clients-list">
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                    <i class="fas fa-inbox text-3xl mb-2"></i>
+                                    <p>Нет клиентов</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Пагинация -->
+                <div class="flex justify-between items-center p-4 border-t border-gray-200">
+                    <button id="prev-page" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50" disabled>
+                        <i class="fas fa-chevron-left mr-2"></i> Назад
+                    </button>
+                    <span id="page-info" class="text-sm text-gray-600">Страница 1 из 1</span>
+                    <button id="next-page" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50" disabled>
+                        Вперед <i class="fas fa-chevron-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно добавления/редактирования клиента -->
+    <div id="client-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto fade-in">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800" id="modal-title">Новый клиент</h3>
+                <button id="close-client-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
-        </div>
-        
-        <!-- Статистика -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-500 text-sm">Всего клиентов</p>
-                        <h3 class="text-2xl font-bold mt-1" id="total-customers">0</h3>
-                    </div>
-                    <div class="bg-blue-100 p-3 rounded-lg text-blue-500">
-                        <i class="fas fa-users"></i>
-                    </div>
-                </div>
-                <div class="mt-2 text-sm text-green-500" id="total-growth">
-                    <i class="fas fa-arrow-up mr-1"></i> 0% за месяц
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-500 text-sm">Новые лиды</p>
-                        <h3 class="text-2xl font-bold mt-1" id="new-leads">0</h3>
-                    </div>
-                    <div class="bg-green-100 p-3 rounded-lg text-green-500">
-                        <i class="fas fa-bullseye"></i>
-                    </div>
-                </div>
-                <div class="mt-2 text-sm text-green-500" id="leads-growth">
-                    <i class="fas fa-arrow-up mr-1"></i> 0% за неделю
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-500 text-sm">Конверсия</p>
-                        <h3 class="text-2xl font-bold mt-1" id="conversion-rate">0%</h3>
-                    </div>
-                    <div class="bg-purple-100 p-3 rounded-lg text-purple-500">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                </div>
-                <div class="mt-2 text-sm" id="conversion-change">
-                    <i class="fas fa-arrow-up mr-1"></i> 0% за месяц
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-500 text-sm">Доход</p>
-                        <h3 class="text-2xl font-bold mt-1" id="total-revenue">$0</h3>
-                    </div>
-                    <div class="bg-yellow-100 p-3 rounded-lg text-yellow-500">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                </div>
-                <div class="mt-2 text-sm text-green-500" id="revenue-growth">
-                    <i class="fas fa-arrow-up mr-1"></i> 0% за месяц
-                </div>
-            </div>
-        </div>
-        
-        <!-- Воронка продаж -->
-        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-gray-700">
-                    <i class="fas fa-filter text-blue-500 mr-2"></i>
-                    Воронка привлечения клиентов
-                </h2>
-                <select id="funnel-period" class="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="week">За неделю</option>
-                    <option value="month" selected>За месяц</option>
-                    <option value="quarter">За квартал</option>
-                    <option value="year">За год</option>
-                </select>
-            </div>
-            
-            <div class="funnel-container">
-                <div class="funnel-stages flex justify-between items-center bg-gray-50 rounded-lg p-4" id="funnel-stages">
-                    <!-- Динамически заполняется JS -->
-                </div>
-            </div>
-            
-            <div class="mt-4">
-                <div class="flex justify-between text-sm text-gray-500 mb-1">
-                    <span>Прогресс по воронке</span>
-                    <span id="funnel-progress-text">0%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="funnel-progress-bar" style="width: 0%"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Фильтры и поиск -->
-        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
-            <div class="flex flex-col md:flex-row gap-4">
-                <div class="flex-1">
-                    <input type="text" id="search-customers" placeholder="Поиск клиентов..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                
-                <div class="flex space-x-2">
-                    <select id="filter-status" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Все статусы</option>
-                        <option value="lead">Лид</option>
-                        <option value="prospect">Потенциальный</option>
-                        <option value="trial">Пробный период</option>
-                        <option value="customer">Клиент</option>
-                        <option value="churned">Ушедший</option>
-                    </select>
+            <div class="p-6">
+                <form id="client-form">
+                    <input type="hidden" id="client-id">
                     
-                    <select id="sort-customers" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="newest">Сначала новые</option>
-                        <option value="oldest">Сначала старые</option>
-                        <option value="name">По имени</option>
-                    </select>
-                </div>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <!-- Основная информация -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Имя*</label>
+                            <input type="text" id="client-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Компания</label>
+                            <input type="text" id="client-company" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Телефон*</label>
+                            <input type="tel" id="client-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Email</label>
+                            <input type="email" id="client-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div class="mb-4 md:col-span-2">
+                            <label class="block text-gray-700 mb-2">Источник</label>
+                            <select id="client-source" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="website">Сайт</option>
+                                <option value="social">Соцсети</option>
+                                <option value="recommendation">Рекомендация</option>
+                                <option value="ad">Реклама</option>
+                                <option value="other">Другое</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4 md:col-span-2">
+                            <label class="block text-gray-700 mb-2">Статус</label>
+                            <select id="client-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="new">Новый</option>
+                                <option value="contacted">Контакт</option>
+                                <option value="proposal">Предложение</option>
+                                <option value="negotiation">Переговоры</option>
+                                <option value="closed">Закрыт</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4 md:col-span-2">
+                            <label class="block text-gray-700 mb-2">Заметки</label>
+                            <textarea id="client-notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Дополнительная информация о клиенте"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопки -->
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" id="cancel-client" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center">
+                            <i class="fas fa-times mr-2"></i> Отмена
+                        </button>
+                        <button type="submit" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center">
+                            <i class="fas fa-save mr-2"></i> Сохранить
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-        
-        <!-- Список клиентов -->
-        <div class="mb-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-gray-700">
-                    <i class="fas fa-list-ul text-blue-500 mr-2"></i>
-                    Клиенты
-                </h2>
-                <div class="text-sm text-gray-500" id="showing-customers">Показано 0 из 0</div>
-            </div>
-            
-            <div class="customer-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="customers-container">
-                <!-- Динамически заполняется JS -->
-            </div>
-            
-            <div class="mt-6 flex justify-center">
-                <button id="load-more" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 hidden">
-                    Показать еще
+    </div>
+
+    <!-- Модальное окно просмотра клиента -->
+    <div id="view-client-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto fade-in">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800" id="view-client-name"></h3>
+                <button id="close-view-client-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
-        </div>
-        
-        <!-- Модальное окно клиента -->
-        <div id="customer-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-xl font-semibold text-gray-800" id="customer-modal-title">Новый клиент</h3>
-                    <button id="close-customer-modal" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div class="mb-6">
-                    <label class="block text-gray-700 mb-2">ФИО *</label>
-                    <input type="text" id="customer-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                </div>
-                
-                <div class="mb-6">
-                    <label class="block text-gray-700 mb-2">Компания</label>
-                    <input type="text" id="customer-company" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label class="block text-gray-700 mb-2">Email *</label>
-                        <input type="email" id="customer-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            <div class="p-6">
+                <div class="grid gap-6 md:grid-cols-3">
+                    <!-- Информация о клиенте -->
+                    <div class="md:col-span-1">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="flex items-center mb-4">
+                                <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 text-2xl font-bold" id="client-avatar">
+                                    JD
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold text-lg" id="view-client-fullname">John Doe</h4>
+                                    <div class="text-gray-500 text-sm" id="view-client-company">Acme Inc.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="text-xs text-gray-500">Телефон</div>
+                                    <div class="font-medium" id="view-client-phone">+7 (123) 456-78-90</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500">Email</div>
+                                    <div class="font-medium" id="view-client-email">john@example.com</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500">Источник</div>
+                                    <div class="font-medium capitalize" id="view-client-source">website</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500">Статус</div>
+                                    <div class="font-medium">
+                                        <span id="view-client-status" class="px-2 py-1 rounded-full text-xs"></span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500">Добавлен</div>
+                                    <div class="font-medium" id="view-client-created">01.01.2023</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <button id="edit-client-btn" class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center justify-center">
+                                    <i class="fas fa-edit mr-2"></i> Редактировать
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div>
-                        <label class="block text-gray-700 mb-2">Телефон *</label>
-                        <input type="tel" id="customer-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <!-- История взаимодействий -->
+                    <div class="md:col-span-2">
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-lg mb-4">Заметки</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg" id="view-client-notes">
+                                Нет заметок
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-lg mb-4">История взаимодействий</h4>
+                            <div class="space-y-4" id="client-history">
+                                <div class="relative timeline-item pl-10">
+                                    <div class="absolute left-0 top-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                                        <i class="fas fa-user-plus"></i>
+                                    </div>
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <div class="font-medium">Клиент добавлен в систему</div>
+                                                <div class="text-sm text-gray-500">01.01.2023 12:00</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Форма добавления взаимодействия -->
+                            <div class="mt-6">
+                                <form id="interaction-form">
+                                    <input type="hidden" id="interaction-client-id">
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 mb-2">Тип взаимодействия</label>
+                                        <select id="interaction-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="call">Звонок</option>
+                                            <option value="meeting">Встреча</option>
+                                            <option value="email">Email</option>
+                                            <option value="message">Сообщение</option>
+                                            <option value="other">Другое</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 mb-2">Комментарий</label>
+                                        <textarea id="interaction-comment" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Опишите суть взаимодействия" required></textarea>
+                                    </div>
+                                    <div class="flex justify-end">
+                                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center">
+                                            <i class="fas fa-plus mr-2"></i> Добавить
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label class="block text-gray-700 mb-2">Статус *</label>
-                        <select id="customer-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="lead">Лид</option>
-                            <option value="prospect">Потенциальный</option>
-                            <option value="trial">Пробный период</option>
-                            <option value="customer">Клиент</option>
-                            <option value="churned">Ушедший</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-700 mb-2">Источник</label>
-                        <select id="customer-source" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="website">Сайт</option>
-                            <option value="social">Соцсети</option>
-                            <option value="recommendation">Рекомендация</option>
-                            <option value="event">Мероприятие</option>
-                            <option value="other">Другое</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="mb-6">
-                    <label class="block text-gray-700 mb-2">Заметки</label>
-                    <textarea id="customer-notes" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"></textarea>
-                </div>
-                
-                <div class="flex justify-between items-center">
-                    <button id="delete-customer" class="px-4 py-2 text-red-500 hover:text-red-700 hidden">
-                        <i class="fas fa-trash mr-2"></i> Удалить
-                    </button>
-                    
-                    <div class="flex space-x-3">
-                        <button id="cancel-customer" class="px-4 py-2 text-gray-600 hover:text-gray-800">Отмена</button>
-                        <button id="save-customer" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Сохранить</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Модальное окно подтверждения удаления -->
-        <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-xl font-semibold text-gray-800">Подтверждение удаления</h3>
-                    <button id="close-confirm-modal" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <p class="mb-6">Вы уверены, что хотите удалить этого клиента? Это действие нельзя отменить.</p>
-                
-                <div class="flex justify-end space-x-3">
-                    <button id="cancel-delete" class="px-4 py-2 text-gray-600 hover:text-gray-800">Отмена</button>
-                    <button id="confirm-delete" class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Удалить</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Состояние CRM
+        // Состояние приложения
         const crmState = {
-            customers: [],
-            filteredCustomers: [],
+            clients: [],
             currentPage: 1,
-            pageSize: 6,
-            editingCustomer: null,
+            itemsPerPage: 10,
+            statusFilter: 'all',
+            sourceFilter: 'all',
+            dateFrom: '',
             searchQuery: '',
-            statusFilter: '',
-            sortOption: 'newest',
-            funnelPeriod: 'month'
+            editClientId: null,
+            viewClientId: null
         };
         
-        // Инициализация CRM
+        // Элементы DOM
+        const crmElements = {
+            newClientBtn: document.getElementById('new-client-btn'),
+            clientModal: document.getElementById('client-modal'),
+            viewClientModal: document.getElementById('view-client-modal'),
+            closeClientModal: document.getElementById('close-client-modal'),
+            closeViewClientModal: document.getElementById('close-view-client-modal'),
+            cancelClient: document.getElementById('cancel-client'),
+            clientForm: document.getElementById('client-form'),
+            clientId: document.getElementById('client-id'),
+            clientName: document.getElementById('client-name'),
+            clientCompany: document.getElementById('client-company'),
+            clientPhone: document.getElementById('client-phone'),
+            clientEmail: document.getElementById('client-email'),
+            clientSource: document.getElementById('client-source'),
+            clientStatus: document.getElementById('client-status'),
+            clientNotes: document.getElementById('client-notes'),
+            modalTitle: document.getElementById('modal-title'),
+            statusFilter: document.getElementById('status-filter'),
+            sourceFilter: document.getElementById('source-filter'),
+            dateFrom: document.getElementById('date-from'),
+            search: document.getElementById('search'),
+            clientsList: document.getElementById('clients-list'),
+            clientsCount: document.getElementById('clients-count'),
+            prevPage: document.getElementById('prev-page'),
+            nextPage: document.getElementById('next-page'),
+            pageInfo: document.getElementById('page-info'),
+            totalClients: document.getElementById('total-clients'),
+            newClients: document.getElementById('new-clients'),
+            activeClients: document.getElementById('active-clients'),
+            proposalClients: document.getElementById('proposal-clients'),
+            closedClients: document.getElementById('closed-clients'),
+            viewClientName: document.getElementById('view-client-name'),
+            viewClientFullname: document.getElementById('view-client-fullname'),
+            viewClientCompany: document.getElementById('view-client-company'),
+            viewClientPhone: document.getElementById('view-client-phone'),
+            viewClientEmail: document.getElementById('view-client-email'),
+            viewClientSource: document.getElementById('view-client-source'),
+            viewClientStatus: document.getElementById('view-client-status'),
+            viewClientCreated: document.getElementById('view-client-created'),
+            viewClientNotes: document.getElementById('view-client-notes'),
+            clientAvatar: document.getElementById('client-avatar'),
+            clientHistory: document.getElementById('client-history'),
+            editClientBtn: document.getElementById('edit-client-btn'),
+            interactionForm: document.getElementById('interaction-form'),
+            interactionClientId: document.getElementById('interaction-client-id'),
+            interactionType: document.getElementById('interaction-type'),
+            interactionComment: document.getElementById('interaction-comment')
+        };
+        
+        // Инициализация приложения
         function initCRM() {
-            loadCustomers();
-            setupEventListeners();
-            renderStatistics();
-            renderFunnel();
-        }
-        
-        // Загрузка клиентов из localStorage
-        function loadCustomers() {
-            const savedCustomers = localStorage.getItem('crm-customers');
-            if (savedCustomers) {
-                crmState.customers = JSON.parse(savedCustomers);
-                // Преобразование строк даты обратно в объекты Date
-                crmState.customers.forEach(customer => {
-                    customer.createdAt = new Date(customer.createdAt);
-                });
-            } else {
-                // Загрузка демо-данных, если нет сохраненных
-                loadDemoData();
-            }
-            filterAndSortCustomers();
-        }
-        
-        // Загрузка демо-данных
-        function loadDemoData() {
-            const demoCustomers = [
-                {
-                    id: 1,
-                    name: "Алексей Петров",
-                    company: "ООО \"ТехноПром\"",
-                    email: "alexey@techprom.ru",
-                    phone: "+7 (912) 345-67-89",
-                    status: "lead",
-                    source: "website",
-                    notes: "Интересуется интеграцией с 1С",
-                    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-                },
-                {
-                    id: 2,
-                    name: "Елена Смирнова",
-                    company: "ИП Смирнова",
-                    email: "elena@smirnova.ru",
-                    phone: "+7 (987) 654-32-10",
-                    status: "prospect",
-                    source: "social",
-                    notes: "Требуется демонстрация продукта",
-                    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-                },
-                {
-                    id: 3,
-                    name: "Дмитрий Иванов",
-                    company: "ООО \"Вектор\"",
-                    email: "dmitry@vector.ru",
-                    phone: "+7 (905) 123-45-67",
-                    status: "trial",
-                    source: "recommendation",
-                    notes: "На пробном периоде до 15.07",
-                    createdAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000)
-                },
-                {
-                    id: 4,
-                    name: "Ольга Кузнецова",
-                    company: "ООО \"СтарТех\"",
-                    email: "olga@startech.ru",
-                    phone: "+7 (916) 987-65-43",
-                    status: "customer",
-                    source: "event",
-                    notes: "Оплатил годовую подписку",
-                    createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
-                },
-                {
-                    id: 5,
-                    name: "Андрей Соколов",
-                    company: "ИП Соколов",
-                    email: "andrey@sokolov.ru",
-                    phone: "+7 (903) 456-78-90",
-                    status: "churned",
-                    source: "website",
-                    notes: "Не устроила цена, ушел к конкурентам",
-                    createdAt: new Date(Date.now() - 150 * 24 * 60 * 60 * 1000)
-                },
-                {
-                    id: 6,
-                    name: "Мария Васнецова",
-                    company: "ООО \"ТехноЛаб\"",
-                    email: "maria@technolab.ru",
-                    phone: "+7 (925) 678-90-12",
-                    status: "customer",
-                    source: "other",
-                    notes: "Корпоративный клиент, возможен опт",
-                    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                }
-            ];
+            // Загружаем данные из localStorage
+            loadClientsFromStorage();
             
-            crmState.customers = demoCustomers;
-            saveCustomers();
-        }
-        
-        // Сохранение клиентов в localStorage
-        function saveCustomers() {
-            localStorage.setItem('crm-customers', JSON.stringify(crmState.customers));
-        }
-        
-        // Фильтрация и сортировка клиентов
-        function filterAndSortCustomers() {
-            let filtered = [...crmState.customers];
+            // Настройка обработчиков событий
+            setupCRMEventListeners();
             
-            // Применение поиска
-            if (crmState.searchQuery) {
-                const query = crmState.searchQuery.toLowerCase();
-                filtered = filtered.filter(customer => 
-                    customer.name.toLowerCase().includes(query) ||
-                    customer.company.toLowerCase().includes(query) ||
-                    customer.email.toLowerCase().includes(query) ||
-                    customer.phone.toLowerCase().includes(query)
-                );
-            }
-            
-            // Применение фильтра по статусу
-            if (crmState.statusFilter) {
-                filtered = filtered.filter(customer => customer.status === crmState.statusFilter);
-            }
-            
-            // Применение сортировки
-            switch (crmState.sortOption) {
-                case 'newest':
-                    filtered.sort((a, b) => b.createdAt - a.createdAt);
-                    break;
-                case 'oldest':
-                    filtered.sort((a, b) => a.createdAt - b.createdAt);
-                    break;
-                case 'name':
-                    filtered.sort((a, b) => a.name.localeCompare(b.name));
-                    break;
-            }
-            
-            crmState.filteredCustomers = filtered;
-            crmState.currentPage = 1;
-            
-            renderCustomers();
+            // Инициализация пагинации
             updatePagination();
+            
+            // Обновляем статистику
+            updateStatistics();
+        }
+        
+        // Загрузка данных из localStorage
+        function loadClientsFromStorage() {
+            const savedClients = localStorage.getItem('crm-clients');
+            if (savedClients) {
+                crmState.clients = JSON.parse(savedClients);
+                renderClients();
+            }
+        }
+        
+        // Сохранение данных в localStorage
+        function saveClientsToStorage() {
+            localStorage.setItem('crm-clients', JSON.stringify(crmState.clients));
+        }
+        
+        // Настройка обработчиков событий
+        function setupCRMEventListeners() {
+            // Открытие модального окна добавления клиента
+            crmElements.newClientBtn.addEventListener('click', function() {
+                openClientModal();
+            });
+            
+            // Закрытие модального окна
+            crmElements.closeClientModal.addEventListener('click', function() {
+                crmElements.clientModal.classList.add('hidden');
+            });
+            
+            crmElements.cancelClient.addEventListener('click', function() {
+                crmElements.clientModal.classList.add('hidden');
+            });
+            
+            // Закрытие модального окна просмотра
+            crmElements.closeViewClientModal.addEventListener('click', function() {
+                crmElements.viewClientModal.classList.add('hidden');
+            });
+            
+            // Обработка отправки формы клиента
+            crmElements.clientForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const clientData = {
+                    id: crmElements.clientId.value ? parseInt(crmElements.clientId.value) : Date.now(),
+                    name: crmElements.clientName.value.trim(),
+                    company: crmElements.clientCompany.value.trim(),
+                    phone: crmElements.clientPhone.value.trim(),
+                    email: crmElements.clientEmail.value.trim(),
+                    source: crmElements.clientSource.value,
+                    status: crmElements.clientStatus.value,
+                    notes: crmElements.clientNotes.value.trim(),
+                    createdAt: crmElements.clientId.value ? 
+                        crmState.clients.find(c => c.id === parseInt(crmElements.clientId.value)).createdAt : 
+                        new Date().toISOString(),
+                    interactions: crmElements.clientId.value ? 
+                        crmState.clients.find(c => c.id === parseInt(crmElements.clientId.value)).interactions : 
+                        [{
+                            type: 'created',
+                            comment: 'Клиент добавлен в систему',
+                            date: new Date().toISOString()
+                        }]
+                };
+                
+                if (crmElements.clientId.value) {
+                    // Редактирование существующего клиента
+                    const index = crmState.clients.findIndex(c => c.id === parseInt(crmElements.clientId.value));
+                    crmState.clients[index] = clientData;
+                    
+                    // Добавляем запись о редактировании
+                    clientData.interactions.push({
+                        type: 'updated',
+                        comment: 'Данные клиента обновлены',
+                        date: new Date().toISOString()
+                    });
+                    
+                    showNotification('Клиент успешно обновлён', 'success');
+                } else {
+                    // Добавление нового клиента
+                    crmState.clients.unshift(clientData);
+                    showNotification('Клиент успешно добавлен', 'success');
+                }
+                
+                // Сохраняем и обновляем интерфейс
+                saveClientsToStorage();
+                renderClients();
+                updateStatistics();
+                updatePagination();
+                
+                // Закрываем модальное окно
+                crmElements.clientModal.classList.add('hidden');
+                
+                // Сбрасываем форму
+                this.reset();
+            });
+            
+            // Фильтрация клиентов
+            crmElements.statusFilter.addEventListener('change', function() {
+                crmState.statusFilter = this.value;
+                crmState.currentPage = 1;
+                renderClients();
+                updatePagination();
+            });
+            
+            crmElements.sourceFilter.addEventListener('change', function() {
+                crmState.sourceFilter = this.value;
+                crmState.currentPage = 1;
+                renderClients();
+                updatePagination();
+            });
+            
+            crmElements.dateFrom.addEventListener('change', function() {
+                crmState.dateFrom = this.value;
+                crmState.currentPage = 1;
+                renderClients();
+                updatePagination();
+            });
+            
+            crmElements.search.addEventListener('input', function() {
+                crmState.searchQuery = this.value.toLowerCase();
+                crmState.currentPage = 1;
+                renderClients();
+                updatePagination();
+            });
+            
+            // Пагинация
+            crmElements.prevPage.addEventListener('click', function() {
+                if (crmState.currentPage > 1) {
+                    crmState.currentPage--;
+                    renderClients();
+                    updatePagination();
+                }
+            });
+            
+            crmElements.nextPage.addEventListener('click', function() {
+                const filteredClients = getFilteredClients();
+                const totalPages = Math.ceil(filteredClients.length / crmState.itemsPerPage);
+                
+                if (crmState.currentPage < totalPages) {
+                    crmState.currentPage++;
+                    renderClients();
+                    updatePagination();
+                }
+            });
+            
+            // Редактирование клиента из окна просмотра
+            crmElements.editClientBtn.addEventListener('click', function() {
+                crmElements.viewClientModal.classList.add('hidden');
+                openClientModal(crmState.viewClientId);
+            });
+            
+            // Добавление взаимодействия
+            crmElements.interactionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const clientId = parseInt(crmElements.interactionClientId.value);
+                const clientIndex = crmState.clients.findIndex(c => c.id === clientId);
+                
+                if (clientIndex !== -1) {
+                    const interaction = {
+                        type: crmElements.interactionType.value,
+                        comment: crmElements.interactionComment.value.trim(),
+                        date: new Date().toISOString()
+                    };
+                    
+                    crmState.clients[clientIndex].interactions.push(interaction);
+                    saveClientsToStorage();
+                    
+                    // Обновляем историю
+                    renderClientHistory(clientId);
+                    
+                    // Сбрасываем форму
+                    crmElements.interactionComment.value = '';
+                    
+                    showNotification('Взаимодействие добавлено', 'success');
+                }
+            });
+        }
+        
+        // Открытие модального окна клиента
+        function openClientModal(clientId = null) {
+            if (clientId) {
+                // Редактирование существующего клиента
+                const client = crmState.clients.find(c => c.id === clientId);
+                if (client) {
+                    crmElements.modalTitle.textContent = 'Редактирование клиента';
+                    crmElements.clientId.value = client.id;
+                    crmElements.clientName.value = client.name;
+                    crmElements.clientCompany.value = client.company || '';
+                    crmElements.clientPhone.value = client.phone;
+                    crmElements.clientEmail.value = client.email || '';
+                    crmElements.clientSource.value = client.source;
+                    crmElements.clientStatus.value = client.status;
+                    crmElements.clientNotes.value = client.notes || '';
+                }
+            } else {
+                // Добавление нового клиента
+                crmElements.modalTitle.textContent = 'Новый клиент';
+                crmElements.clientId.value = '';
+                crmElements.clientForm.reset();
+                crmElements.clientStatus.value = 'new';
+            }
+            
+            crmElements.clientModal.classList.remove('hidden');
+        }
+        
+        // Открытие модального окна просмотра клиента
+        function openViewClientModal(clientId) {
+            const client = crmState.clients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            crmState.viewClientId = clientId;
+            
+            // Заполняем данные клиента
+            const createdAt = new Date(client.createdAt);
+            const formattedDate = createdAt.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'numeric',
+                year: 'numeric'
+            });
+            
+            // Генерируем аватар из инициалов
+            const initials = client.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            
+            crmElements.viewClientName.textContent = client.name;
+            crmElements.viewClientFullname.textContent = client.name;
+            crmElements.viewClientCompany.textContent = client.company || 'Не указано';
+            crmElements.viewClientPhone.textContent = client.phone;
+            crmElements.viewClientEmail.textContent = client.email || 'Не указан';
+            crmElements.viewClientSource.textContent = getSourceName(client.source);
+            crmElements.viewClientCreated.textContent = formattedDate;
+            crmElements.viewClientNotes.textContent = client.notes || 'Нет заметок';
+            crmElements.clientAvatar.textContent = initials;
+            crmElements.interactionClientId.value = clientId;
+            
+            // Устанавливаем статус
+            const statusElement = crmElements.viewClientStatus;
+            statusElement.textContent = getStatusName(client.status);
+            statusElement.className = 'px-2 py-1 rounded-full text-xs ' + getStatusClass(client.status);
+            
+            // Заполняем историю взаимодействий
+            renderClientHistory(clientId);
+            
+            // Открываем модальное окно
+            crmElements.viewClientModal.classList.remove('hidden');
+        }
+        
+        // Рендер истории взаимодействий
+        function renderClientHistory(clientId) {
+            const client = crmState.clients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            crmElements.clientHistory.innerHTML = '';
+            
+            // Сортируем взаимодействия по дате (новые сверху)
+            const sortedInteractions = [...client.interactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedInteractions.forEach(interaction => {
+                const date = new Date(interaction.date);
+                const formattedDate = date.toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                let icon, iconClass, title;
+                
+                switch(interaction.type) {
+                    case 'created':
+                        icon = 'fa-user-plus';
+                        iconClass = 'bg-blue-100 text-blue-500';
+                        title = 'Клиент добавлен в систему';
+                        break;
+                    case 'updated':
+                        icon = 'fa-edit';
+                        iconClass = 'bg-yellow-100 text-yellow-500';
+                        title = 'Данные клиента обновлены';
+                        break;
+                    case 'call':
+                        icon = 'fa-phone';
+                        iconClass = 'bg-green-100 text-green-500';
+                        title = 'Звонок';
+                        break;
+                    case 'meeting':
+                        icon = 'fa-handshake';
+                        iconClass = 'bg-purple-100 text-purple-500';
+                        title = 'Встреча';
+                        break;
+                    case 'email':
+                        icon = 'fa-envelope';
+                        iconClass = 'bg-red-100 text-red-500';
+                        title = 'Email';
+                        break;
+                    case 'message':
+                        icon = 'fa-comment';
+                        iconClass = 'bg-indigo-100 text-indigo-500';
+                        title = 'Сообщение';
+                        break;
+                    default:
+                        icon = 'fa-circle';
+                        iconClass = 'bg-gray-100 text-gray-500';
+                        title = 'Взаимодействие';
+                }
+                
+                const interactionElement = document.createElement('div');
+                interactionElement.className = 'relative timeline-item pl-10';
+                interactionElement.innerHTML = `
+                    <div class="absolute left-0 top-0 w-8 h-8 rounded-full ${iconClass} flex items-center justify-center">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-medium">${title}</div>
+                                <div class="text-sm text-gray-500">${formattedDate}</div>
+                                ${interaction.comment ? `<div class="mt-2 text-sm">${interaction.comment}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                crmElements.clientHistory.appendChild(interactionElement);
+            });
+        }
+        
+        // Получение отфильтрованных клиентов
+        function getFilteredClients() {
+            let filteredClients = [...crmState.clients];
+            
+            // Фильтрация по статусу
+            if (crmState.statusFilter !== 'all') {
+                filteredClients = filteredClients.filter(c => c.status === crmState.statusFilter);
+            }
+            
+            // Фильтрация по источнику
+            if (crmState.sourceFilter !== 'all') {
+                filteredClients = filteredClients.filter(c => c.source === crmState.sourceFilter);
+            }
+            
+            // Фильтрация по дате
+            if (crmState.dateFrom) {
+                filteredClients = filteredClients.filter(c => {
+                    const clientDate = new Date(c.createdAt).toISOString().split('T')[0];
+                    return clientDate >= crmState.dateFrom;
+                });
+            }
+            
+            // Поиск
+            if (crmState.searchQuery) {
+                filteredClients = filteredClients.filter(c => {
+                    return c.name.toLowerCase().includes(crmState.searchQuery) ||
+                           (c.company && c.company.toLowerCase().includes(crmState.searchQuery)) ||
+                           c.phone.toLowerCase().includes(crmState.searchQuery) ||
+                           (c.email && c.email.toLowerCase().includes(crmState.searchQuery));
+                });
+            }
+            
+            return filteredClients;
         }
         
         // Рендер списка клиентов
-        function renderCustomers() {
-            const container = document.getElementById('customers-container');
-            container.innerHTML = '';
+        function renderClients() {
+            const filteredClients = getFilteredClients();
             
-            const startIndex = (crmState.currentPage - 1) * crmState.pageSize;
-            const endIndex = startIndex + crmState.pageSize;
-            const customersToShow = crmState.filteredCustomers.slice(startIndex, endIndex);
+            // Пагинация
+            const startIndex = (crmState.currentPage - 1) * crmState.itemsPerPage;
+            const endIndex = startIndex + crmState.itemsPerPage;
+            const paginatedClients = filteredClients.slice(startIndex, endIndex);
             
-            if (customersToShow.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center py-10">
-                        <i class="fas fa-user-slash text-gray-300 text-4xl mb-3"></i>
-                        <p class="text-gray-500">Клиенты не найдены</p>
-                    </div>
+            crmElements.clientsList.innerHTML = '';
+            
+            if (paginatedClients.length === 0) {
+                crmElements.clientsList.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            <i class="fas fa-inbox text-3xl mb-2"></i>
+                            <p>Нет клиентов</p>
+                        </td>
+                    </tr>
                 `;
                 return;
             }
             
-            customersToShow.forEach(customer => {
-                const card = document.createElement('div');
-                card.className = 'customer-card bg-white rounded-xl shadow-sm p-4 fade-in';
+            paginatedClients.forEach(client => {
+                const createdAt = new Date(client.createdAt);
+                const formattedDate = createdAt.toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric'
+                });
                 
-                // Определение класса статуса
-                let statusClass = '';
-                let statusText = '';
-                
-                switch (customer.status) {
-                    case 'lead':
-                        statusClass = 'status-lead';
-                        statusText = 'Лид';
-                        break;
-                    case 'prospect':
-                        statusClass = 'status-prospect';
-                        statusText = 'Потенциальный';
-                        break;
-                    case 'trial':
-                        statusClass = 'status-trial';
-                        statusText = 'Пробный период';
-                        break;
-                    case 'customer':
-                        statusClass = 'status-customer';
-                        statusText = 'Клиент';
-                        break;
-                    case 'churned':
-                        statusClass = 'status-churned';
-                        statusText = 'Ушедший';
-                        break;
-                }
-                
-                // Форматирование даты
-                const formattedDate = formatDate(customer.createdAt);
-                
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <h3 class="font-bold text-lg">${customer.name}</h3>
-                            <p class="text-gray-500 text-sm">${customer.company || 'Не указано'}</p>
+                const clientElement = document.createElement('tr');
+                clientElement.className = 'hover:bg-gray-50';
+                clientElement.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">
+                                ${client.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            </div>
+                            <div class="ml-4">
+                                <div class="font-medium text-gray-900">${client.name}</div>
+                                <div class="text-gray-500 text-sm">${client.company || ''}</div>
+                            </div>
                         </div>
-                        <span class="${statusClass} text-xs font-medium px-2 py-1 rounded-full">${statusText}</span>
-                    </div>
-                    
-                    <div class="flex items-center text-gray-500 text-sm mb-3">
-                        <i class="fas fa-envelope mr-2"></i>
-                        <span>${customer.email}</span>
-                    </div>
-                    
-                    <div class="flex items-center text-gray-500 text-sm mb-4">
-                        <i class="fas fa-phone mr-2"></i>
-                        <span>${customer.phone}</span>
-                    </div>
-                    
-                    <div class="flex justify-between items-center">
-                        <div class="text-xs text-gray-400">Добавлен ${formattedDate}</div>
-                        <div class="flex space-x-2">
-                            <button class="edit-btn p-1 text-blue-500 hover:text-blue-700" data-id="${customer.id}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="delete-btn p-1 text-red-500 hover:text-red-700" data-id="${customer.id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-gray-900">${client.phone}</div>
+                        <div class="text-gray-500 text-sm">${client.email || ''}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 ${getStatusClass(client.status)} rounded-full text-xs">
+                            ${getStatusName(client.status)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap capitalize">
+                        ${getSourceName(client.source)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-gray-900">${formattedDate}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-blue-500 hover:text-blue-700 mr-3 view-client-btn" data-id="${client.id}">
+                            <i class="fas fa-eye mr-1"></i>
+                        </button>
+                        <button class="text-gray-500 hover:text-gray-700 edit-client-btn" data-id="${client.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
                 `;
                 
-                container.appendChild(card);
+                crmElements.clientsList.appendChild(clientElement);
             });
             
-            // Добавление обработчиков событий для кнопок редактирования и удаления
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const customerId = parseInt(e.currentTarget.getAttribute('data-id'));
-                    const customer = crmState.customers.find(c => c.id === customerId);
-                    if (customer) {
-                        openCustomerModal(customer);
-                    }
+            // Обновляем счетчик клиентов
+            crmElements.clientsCount.textContent = `Показано ${paginatedClients.length} из ${filteredClients.length}`;
+            
+            // Добавляем обработчики для кнопок просмотра
+            document.querySelectorAll('.view-client-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const clientId = parseInt(this.dataset.id);
+                    openViewClientModal(clientId);
                 });
             });
             
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const customerId = parseInt(e.currentTarget.getAttribute('data-id'));
-                    const customer = crmState.customers.find(c => c.id === customerId);
-                    if (customer) {
-                        openConfirmModal(customer);
-                    }
+            // Добавляем обработчики для кнопок редактирования
+            document.querySelectorAll('.edit-client-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const clientId = parseInt(this.dataset.id);
+                    openClientModal(clientId);
                 });
             });
-            
-            // Обновление текста "Показано X из Y"
-            updateShowingText();
-        }
-        
-        // Обновление текста "Показано X из Y"
-        function updateShowingText() {
-            const startIndex = (crmState.currentPage - 1) * crmState.pageSize + 1;
-            const endIndex = Math.min(startIndex + crmState.pageSize - 1, crmState.filteredCustomers.length);
-            const total = crmState.filteredCustomers.length;
-            
-            document.getElementById('showing-customers').textContent = 
-                `Показано ${startIndex}-${endIndex} из ${total}`;
         }
         
         // Обновление пагинации
         function updatePagination() {
-            const loadMoreBtn = document.getElementById('load-more');
-            const hasMore = crmState.filteredCustomers.length > crmState.currentPage * crmState.pageSize;
+            const filteredClients = getFilteredClients();
+            const totalPages = Math.ceil(filteredClients.length / crmState.itemsPerPage);
             
-            if (hasMore) {
-                loadMoreBtn.classList.remove('hidden');
-            } else {
-                loadMoreBtn.classList.add('hidden');
-            }
+            // Обновляем информацию о странице
+            crmElements.pageInfo.textContent = `Страница ${crmState.currentPage} из ${totalPages || 1}`;
+            
+            // Обновляем состояние кнопок
+            crmElements.prevPage.disabled = crmState.currentPage <= 1;
+            crmElements.nextPage.disabled = crmState.currentPage >= totalPages;
         }
         
-        // Форматирование даты
-        function formatDate(date) {
+        // Обновление статистики
+        function updateStatistics() {
             const now = new Date();
-            const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
             
-            if (diffInDays === 0) {
-                return 'сегодня';
-            } else if (diffInDays === 1) {
-                return 'вчера';
-            } else if (diffInDays < 7) {
-                return `${diffInDays} дня назад`;
-            } else if (diffInDays < 30) {
-                const weeks = Math.floor(diffInDays / 7);
-                return `${weeks} ${weeks === 1 ? 'неделю' : 'недели'} назад`;
-            } else if (diffInDays < 365) {
-                const months = Math.floor(diffInDays / 30);
-                return `${months} ${months === 1 ? 'месяц' : months < 5 ? 'месяца' : 'месяцев'} назад`;
-            } else {
-                const years = Math.floor(diffInDays / 365);
-                return `${years} ${years === 1 ? 'год' : years < 5 ? 'года' : 'лет'} назад`;
+            // Общее количество клиентов
+            crmElements.totalClients.textContent = crmState.clients.length;
+            
+            // Клиенты по статусам
+            crmElements.newClients.textContent = crmState.clients.filter(c => c.status === 'new').length;
+            crmElements.activeClients.textContent = crmState.clients.filter(c => c.status === 'contacted' || c.status === 'negotiation').length;
+            crmElements.proposalClients.textContent = crmState.clients.filter(c => c.status === 'proposal').length;
+            crmElements.closedClients.textContent = crmState.clients.filter(c => c.status === 'closed').length;
+        }
+        
+        // Получение класса для статуса
+        function getStatusClass(status) {
+            switch(status) {
+                case 'new': return 'bg-gray-100 text-gray-800';
+                case 'contacted': return 'bg-blue-100 text-blue-800';
+                case 'proposal': return 'bg-yellow-100 text-yellow-800';
+                case 'negotiation': return 'bg-purple-100 text-purple-800';
+                case 'closed': return 'bg-green-100 text-green-800';
+                default: return 'bg-gray-100 text-gray-800';
             }
         }
         
-        // Открытие модального окна клиента
-        function openCustomerModal(customer = null) {
-            const modal = document.getElementById('customer-modal');
-            const deleteBtn = document.getElementById('delete-customer');
-            
-            if (customer) {
-                // Редактирование существующего клиента
-                crmState.editingCustomer = customer;
-                document.getElementById('customer-modal-title').textContent = 'Редактирование клиента';
-                document.getElementById('customer-name').value = customer.name;
-                document.getElementById('customer-company').value = customer.company || '';
-                document.getElementById('customer-email').value = customer.email;
-                document.getElementById('customer-phone').value = customer.phone;
-                document.getElementById('customer-status').value = customer.status;
-                document.getElementById('customer-source').value = customer.source || 'website';
-                document.getElementById('customer-notes').value = customer.notes || '';
-                
-                // Показываем кнопку удаления
-                deleteBtn.classList.remove('hidden');
-                deleteBtn.setAttribute('data-id', customer.id);
-            } else {
-                // Создание нового клиента
-                crmState.editingCustomer = null;
-                document.getElementById('customer-modal-title').textContent = 'Новый клиент';
-                document.getElementById('customer-name').value = '';
-                document.getElementById('customer-company').value = '';
-                document.getElementById('customer-email').value = '';
-                document.getElementById('customer-phone').value = '';
-                document.getElementById('customer-status').value = 'lead';
-                document.getElementById('customer-source').value = 'website';
-                document.getElementById('customer-notes').value = '';
-                
-                // Скрываем кнопку удаления
-                deleteBtn.classList.add('hidden');
-            }
-            
-            modal.classList.remove('hidden');
-        }
-        
-        // Открытие модального окна подтверждения удаления
-        function openConfirmModal(customer) {
-            const modal = document.getElementById('confirm-modal');
-            crmState.editingCustomer = customer;
-            modal.classList.remove('hidden');
-        }
-        
-        // Закрытие модального окна подтверждения удаления
-        function closeConfirmModal() {
-            const modal = document.getElementById('confirm-modal');
-            modal.classList.add('hidden');
-        }
-        
-        // Сохранение клиента
-        function saveCustomer() {
-            const name = document.getElementById('customer-name').value.trim();
-            const email = document.getElementById('customer-email').value.trim();
-            const phone = document.getElementById('customer-phone').value.trim();
-            
-            if (!name) {
-                showNotification('Пожалуйста, укажите ФИО клиента', 'error');
-                return;
-            }
-            
-            if (!email) {
-                showNotification('Пожалуйста, укажите email клиента', 'error');
-                return;
-            }
-            
-            if (!phone) {
-                showNotification('Пожалуйста, укажите телефон клиента', 'error');
-                return;
-            }
-            
-            const customer = {
-                id: crmState.editingCustomer ? crmState.editingCustomer.id : Date.now(),
-                name: name,
-                company: document.getElementById('customer-company').value.trim(),
-                email: email,
-                phone: phone,
-                status: document.getElementById('customer-status').value,
-                source: document.getElementById('customer-source').value,
-                notes: document.getElementById('customer-notes').value.trim(),
-                createdAt: crmState.editingCustomer ? crmState.editingCustomer.createdAt : new Date()
-            };
-            
-            if (crmState.editingCustomer) {
-                // Обновляем существующего клиента
-                const index = crmState.customers.findIndex(c => c.id === customer.id);
-                if (index !== -1) {
-                    crmState.customers[index] = customer;
-                    showNotification('Клиент успешно обновлен', 'success');
-                }
-            } else {
-                // Добавляем нового клиента
-                crmState.customers.push(customer);
-                showNotification('Клиент успешно добавлен', 'success');
-            }
-            
-            saveCustomers();
-            closeCustomerModal();
-            filterAndSortCustomers();
-            renderStatistics();
-            renderFunnel();
-        }
-        
-        // Удаление клиента
-        function deleteCustomer() {
-            if (crmState.editingCustomer) {
-                const index = crmState.customers.findIndex(c => c.id === crmState.editingCustomer.id);
-                if (index !== -1) {
-                    crmState.customers.splice(index, 1);
-                    showNotification('Клиент успешно удален', 'success');
-                    saveCustomers();
-                    closeConfirmModal();
-                    filterAndSortCustomers();
-                    renderStatistics();
-                    renderFunnel();
-                }
+        // Получение названия статуса
+        function getStatusName(status) {
+            switch(status) {
+                case 'new': return 'Новый';
+                case 'contacted': return 'Контакт';
+                case 'proposal': return 'Предложение';
+                case 'negotiation': return 'Переговоры';
+                case 'closed': return 'Закрыт';
+                default: return status;
             }
         }
         
-        // Закрытие модального окна клиента
-        function closeCustomerModal() {
-            document.getElementById('customer-modal').classList.add('hidden');
-            crmState.editingCustomer = null;
-        }
-        
-        // Рендер статистики
-        function renderStatistics() {
-            const totalCustomers = crmState.customers.length;
-            const newLeads = crmState.customers.filter(c => c.status === 'lead' && isRecent(c.createdAt, 7)).length;
-            const customers = crmState.customers.filter(c => c.status === 'customer').length;
-            const churned = crmState.customers.filter(c => c.status === 'churned').length;
-            
-            // Расчет конверсии (отношение клиентов к общему числу)
-            const conversionRate = totalCustomers > 0 ? Math.round((customers / totalCustomers) * 100) : 0;
-            
-            // Расчет дохода (условный)
-            const totalRevenue = customers * 99; // $99 за клиента
-            
-            // Расчет роста (условный)
-            const prevMonthCustomers = crmState.customers.filter(c => c.createdAt < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length;
-            const currentMonthCustomers = totalCustomers - prevMonthCustomers;
-            const totalGrowth = prevMonthCustomers > 0 ? Math.round((currentMonthCustomers / prevMonthCustomers) * 100) : currentMonthCustomers > 0 ? 100 : 0;
-            
-            const prevWeekLeads = crmState.customers.filter(c => c.status === 'lead' && c.createdAt < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length;
-            const currentWeekLeads = newLeads;
-            const leadsGrowth = prevWeekLeads > 0 ? Math.round((currentWeekLeads / prevWeekLeads) * 100) : currentWeekLeads > 0 ? 100 : 0;
-            
-            const prevMonthRevenue = customers * 79; // $79 за клиента в прошлом месяце
-            const revenueGrowth = prevMonthRevenue > 0 ? Math.round(((totalRevenue - prevMonthRevenue) / prevMonthRevenue) * 100) : totalRevenue > 0 ? 100 : 0;
-            
-            // Обновление DOM
-            document.getElementById('total-customers').textContent = totalCustomers;
-            document.getElementById('new-leads').textContent = newLeads;
-            document.getElementById('conversion-rate').textContent = `${conversionRate}%`;
-            document.getElementById('total-revenue').textContent = `$${totalRevenue.toLocaleString()}`;
-            
-            // Обновление роста
-            const totalGrowthEl = document.getElementById('total-growth');
-            totalGrowthEl.innerHTML = `<i class="fas fa-arrow-${totalGrowth >= 0 ? 'up' : 'down'} mr-1"></i> ${Math.abs(totalGrowth)}% за месяц`;
-            totalGrowthEl.className = `mt-2 text-sm ${totalGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`;
-            
-            const leadsGrowthEl = document.getElementById('leads-growth');
-            leadsGrowthEl.innerHTML = `<i class="fas fa-arrow-${leadsGrowth >= 0 ? 'up' : 'down'} mr-1"></i> ${Math.abs(leadsGrowth)}% за неделю`;
-            leadsGrowthEl.className = `mt-2 text-sm ${leadsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`;
-            
-            const conversionChangeEl = document.getElementById('conversion-change');
-            const conversionChange = 5; // Условное изменение конверсии
-            conversionChangeEl.innerHTML = `<i class="fas fa-arrow-${conversionChange >= 0 ? 'up' : 'down'} mr-1"></i> ${Math.abs(conversionChange)}% за месяц`;
-            conversionChangeEl.className = `mt-2 text-sm ${conversionChange >= 0 ? 'text-green-500' : 'text-red-500'}`;
-            
-            const revenueGrowthEl = document.getElementById('revenue-growth');
-            revenueGrowthEl.innerHTML = `<i class="fas fa-arrow-${revenueGrowth >= 0 ? 'up' : 'down'} mr-1"></i> ${Math.abs(revenueGrowth)}% за месяц`;
-            revenueGrowthEl.className = `mt-2 text-sm ${revenueGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`;
-        }
-        
-        // Проверка, является ли дата недавней (за указанное количество дней)
-        function isRecent(date, days) {
-            const now = new Date();
-            const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-            return diffInDays <= days;
-        }
-        
-        // Рендер воронки продаж
-        function renderFunnel() {
-            const funnelContainer = document.getElementById('funnel-stages');
-            const period = crmState.funnelPeriod;
-            
-            // Расчет воронки для выбранного периода
-            let awareness, leads, trials, customers, repeatCustomers;
-            
-            if (period === 'week') {
-                awareness = crmState.customers.filter(c => isRecent(c.createdAt, 7)).length;
-                leads = crmState.customers.filter(c => c.status === 'lead' && isRecent(c.createdAt, 7)).length;
-                trials = crmState.customers.filter(c => c.status === 'trial' && isRecent(c.createdAt, 7)).length;
-                customers = crmState.customers.filter(c => c.status === 'customer' && isRecent(c.createdAt, 7)).length;
-                repeatCustomers = 0; // Упрощение для демо
-            } else if (period === 'month') {
-                awareness = crmState.customers.filter(c => isRecent(c.createdAt, 30)).length;
-                leads = crmState.customers.filter(c => c.status === 'lead' && isRecent(c.createdAt, 30)).length;
-                trials = crmState.customers.filter(c => c.status === 'trial' && isRecent(c.createdAt, 30)).length;
-                customers = crmState.customers.filter(c => c.status === 'customer' && isRecent(c.createdAt, 30)).length;
-                repeatCustomers = 0; // Упрощение для демо
-            } else if (period === 'quarter') {
-                awareness = crmState.customers.filter(c => isRecent(c.createdAt, 90)).length;
-                leads = crmState.customers.filter(c => c.status === 'lead' && isRecent(c.createdAt, 90)).length;
-                trials = crmState.customers.filter(c => c.status === 'trial' && isRecent(c.createdAt, 90)).length;
-                customers = crmState.customers.filter(c => c.status === 'customer' && isRecent(c.createdAt, 90)).length;
-                repeatCustomers = 0; // Упрощение для демо
-            } else { // year
-                awareness = crmState.customers.filter(c => isRecent(c.createdAt, 365)).length;
-                leads = crmState.customers.filter(c => c.status === 'lead' && isRecent(c.createdAt, 365)).length;
-                trials = crmState.customers.filter(c => c.status === 'trial' && isRecent(c.createdAt, 365)).length;
-                customers = crmState.customers.filter(c => c.status === 'customer' && isRecent(c.createdAt, 365)).length;
-                repeatCustomers = 0; // Упрощение для демо
+        // Получение названия источника
+        function getSourceName(source) {
+            switch(source) {
+                case 'website': return 'Сайт';
+                case 'social': return 'Соцсети';
+                case 'recommendation': return 'Рекомендация';
+                case 'ad': return 'Реклама';
+                case 'other': return 'Другое';
+                default: return source;
             }
-            
-            // Расчет процентов для каждого этапа
-            const awarenessPercent = 100;
-            const leadsPercent = awareness > 0 ? Math.round((leads / awareness) * 100) : 0;
-            const trialsPercent = awareness > 0 ? Math.round((trials / awareness) * 100) : 0;
-            const customersPercent = awareness > 0 ? Math.round((customers / awareness) * 100) : 0;
-            const repeatPercent = awareness > 0 ? Math.round((repeatCustomers / awareness) * 100) : 0;
-            
-            // Общий прогресс по воронке (усредненный)
-            const funnelProgress = Math.round((leadsPercent + trialsPercent + customersPercent + repeatPercent) / 4);
-            
-            // Обновление DOM
-            funnelContainer.innerHTML = `
-                <div class="funnel-stage text-center px-4">
-                    <div class="text-sm text-gray-500 mb-1">Знакомство</div>
-                    <div class="text-xl font-bold">${awareness}</div>
-                    <div class="text-xs text-gray-400 mt-1">${awarenessPercent}%</div>
-                </div>
-                
-                <div class="funnel-stage text-center px-4">
-                    <div class="text-sm text-gray-500 mb-1">Лид</div>
-                    <div class="text-xl font-bold">${leads}</div>
-                    <div class="text-xs text-gray-400 mt-1">${leadsPercent}%</div>
-                </div>
-                
-                <div class="funnel-stage text-center px-4">
-                    <div class="text-sm text-gray-500 mb-1">Пробный период</div>
-                    <div class="text-xl font-bold">${trials}</div>
-                    <div class="text-xs text-gray-400 mt-1">${trialsPercent}%</div>
-                </div>
-                
-                <div class="funnel-stage text-center px-4">
-                    <div class="text-sm text-gray-500 mb-1">Клиент</div>
-                    <div class="text-xl font-bold">${customers}</div>
-                    <div class="text-xs text-gray-400 mt-1">${customersPercent}%</div>
-                </div>
-                
-                <div class="text-center px-4">
-                    <div class="text-sm text-gray-500 mb-1">Повторные</div>
-                    <div class="text-xl font-bold">${repeatCustomers}</div>
-                    <div class="text-xs text-gray-400 mt-1">${repeatPercent}%</div>
-                </div>
-            `;
-            
-            // Обновление прогресс-бара
-            document.getElementById('funnel-progress-text').textContent = `${funnelProgress}%`;
-            document.getElementById('funnel-progress-bar').style.width = `${funnelProgress}%`;
         }
         
         // Показать уведомление
-        function showNotification(message, type = 'info') {
-            const notificationArea = document.getElementById('notification-area');
+        function showNotification(message, type) {
             const notification = document.createElement('div');
-            
-            let bgColor = 'bg-blue-500';
-            if (type === 'success') bgColor = 'bg-green-500';
-            if (type === 'error') bgColor = 'bg-red-500';
-            if (type === 'warning') bgColor = 'bg-yellow-500';
-            
-            notification.className = `notification ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg`;
+            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg text-white ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } animate-bounce`;
             notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
-                    <span>${message}</span>
-                </div>
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i>
+                ${message}
             `;
+            document.body.appendChild(notification);
             
-            notificationArea.appendChild(notification);
-            
-            // Автоматическое скрытие через 3 секунды
             setTimeout(() => {
-                notification.classList.add('hide');
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
+                notification.classList.remove('animate-bounce');
+                notification.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => notification.remove(), 500);
             }, 3000);
-        }
-        
-        // Экспорт данных
-        function exportData() {
-            const data = {
-                customers: crmState.customers,
-                timestamp: new Date().toISOString()
-            };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `crm-export-${new Date().toISOString().slice(0, 10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            showNotification('Данные успешно экспортированы', 'success');
-        }
-        
-        // Настройка обработчиков событий
-        function setupEventListeners() {
-            // Кнопка добавления клиента
-            document.getElementById('add-customer').addEventListener('click', () => openCustomerModal());
-            
-            // Кнопка экспорта данных
-            document.getElementById('export-data').addEventListener('click', exportData);
-            
-            // Модальное окно клиента
-            document.getElementById('close-customer-modal').addEventListener('click', closeCustomerModal);
-            document.getElementById('cancel-customer').addEventListener('click', closeCustomerModal);
-            document.getElementById('save-customer').addEventListener('click', saveCustomer);
-            document.getElementById('delete-customer').addEventListener('click', () => {
-                if (crmState.editingCustomer) {
-                    openConfirmModal(crmState.editingCustomer);
-                }
-            });
-            
-            // Модальное окно подтверждения удаления
-            document.getElementById('close-confirm-modal').addEventListener('click', closeConfirmModal);
-            document.getElementById('cancel-delete').addEventListener('click', closeConfirmModal);
-            document.getElementById('confirm-delete').addEventListener('click', deleteCustomer);
-            
-            // Закрытие модальных окон при клике вне их
-            document.getElementById('customer-modal').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('customer-modal')) {
-                    closeCustomerModal();
-                }
-            });
-            
-            document.getElementById('confirm-modal').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('confirm-modal')) {
-                    closeConfirmModal();
-                }
-            });
-            
-            // Фильтры и поиск
-            document.getElementById('search-customers').addEventListener('input', (e) => {
-                crmState.searchQuery = e.target.value;
-                filterAndSortCustomers();
-            });
-            
-            document.getElementById('filter-status').addEventListener('change', (e) => {
-                crmState.statusFilter = e.target.value;
-                filterAndSortCustomers();
-            });
-            
-            document.getElementById('sort-customers').addEventListener('change', (e) => {
-                crmState.sortOption = e.target.value;
-                filterAndSortCustomers();
-            });
-            
-            // Воронка продаж
-            document.getElementById('funnel-period').addEventListener('change', (e) => {
-                crmState.funnelPeriod = e.target.value;
-                renderFunnel();
-            });
-            
-            // Кнопка "Показать еще"
-            document.getElementById('load-more').addEventListener('click', () => {
-                crmState.currentPage++;
-                renderCustomers();
-                updatePagination();
-            });
         }
         
         // Инициализация при загрузке страницы
