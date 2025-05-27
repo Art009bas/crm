@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM для учёта клиентов</title>
+    <title>CRM для учёта клиентов и компаний</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -53,6 +53,14 @@
             width: 2px;
             background-color: #e5e7eb;
         }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -61,127 +69,238 @@
         <header class="mb-6">
             <div class="flex justify-between items-center">
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-800">
-                    <i class="fas fa-users text-blue-500 mr-3"></i>
-                    CRM light
+                    <i class="fas fa-users-cog text-blue-500 mr-3"></i>
+                    CRM Pro
                 </h1>
-                <button id="new-client-btn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center">
-                    <i class="fas fa-plus mr-2"></i> Новый клиент
-                </button>
+                <div class="flex space-x-3">
+                    <button id="settings-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center">
+                        <i class="fas fa-cog mr-2"></i> Настройки
+                    </button>
+                    <button id="new-company-btn" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center">
+                        <i class="fas fa-building mr-2"></i> Компания
+                    </button>
+                    <button id="new-client-btn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center">
+                        <i class="fas fa-plus mr-2"></i> Клиент
+                    </button>
+                </div>
             </div>
-            <p class="text-gray-500 mt-2">Для учёта клиентов</p>
+            <p class="text-gray-500 mt-2">Управление клиентами и компаниями</p>
         </header>
+        
+        <!-- Табы -->
+        <div class="flex border-b border-gray-200 mb-6">
+            <button class="tab-btn py-2 px-4 font-medium text-blue-500 border-b-2 border-blue-500" data-tab="clients">
+                <i class="fas fa-users mr-2"></i>Клиенты
+            </button>
+            <button class="tab-btn py-2 px-4 font-medium text-gray-500 hover:text-gray-700" data-tab="companies">
+                <i class="fas fa-building mr-2"></i>Компании
+            </button>
+        </div>
         
         <!-- Основной контент -->
         <main>
-            <!-- Фильтры и поиск -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6 fade-in">
-                <div class="p-4 border-b border-gray-200">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label class="block text-gray-700 text-sm mb-1">Статус</label>
-                            <select id="status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                                <option value="all">Все</option>
-                                <option value="new">Новый</option>
-                                <option value="contacted">Контакт</option>
-                                <option value="proposal">Предложение</option>
-                                <option value="negotiation">Переговоры</option>
-                                <option value="closed">Закрыт</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm mb-1">Источник</label>
-                            <select id="source-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                                <option value="all">Все</option>
-                                <option value="website">Сайт</option>
-                                <option value="social">Соцсети</option>
-                                <option value="recommendation">Рекомендация</option>
-                                <option value="ad">Реклама</option>
-                                <option value="other">Другое</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm mb-1">Дата с</label>
-                            <input type="date" id="date-from" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm mb-1">Поиск</label>
-                            <div class="relative">
-                                <input type="text" id="search" placeholder="Имя, телефон, email..." class="w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                                <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
+            <!-- Контент клиентов -->
+            <div id="clients-tab" class="tab-content active">
+                <!-- Фильтры и поиск -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6 fade-in">
+                    <div class="p-4 border-b border-gray-200">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm mb-1">Статус</label>
+                                <select id="status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="all">Все</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm mb-1">Источник</label>
+                                <select id="source-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="all">Все</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm mb-1">Компания</label>
+                                <select id="company-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="all">Все</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm mb-1">Поиск</label>
+                                <div class="relative">
+                                    <input type="text" id="search" placeholder="Имя, телефон, email..." class="w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Статистика -->
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 fade-in">
-                <div class="bg-white rounded-xl shadow-md p-4">
-                    <div class="text-2xl font-bold text-blue-600" id="total-clients">0</div>
-                    <div class="text-gray-600 text-sm">Всего клиентов</div>
-                </div>
-                <div class="bg-white rounded-xl shadow-md p-4">
-                    <div class="text-2xl font-bold text-green-600" id="new-clients">0</div>
-                    <div class="text-gray-600 text-sm">Новые</div>
-                </div>
-                <div class="bg-white rounded-xl shadow-md p-4">
-                    <div class="text-2xl font-bold text-yellow-600" id="active-clients">0</div>
-                    <div class="text-gray-600 text-sm">Активные</div>
-                </div>
-                <div class="bg-white rounded-xl shadow-md p-4">
-                    <div class="text-2xl font-bold text-purple-600" id="proposal-clients">0</div>
-                    <div class="text-gray-600 text-sm">Предложения</div>
-                </div>
-                <div class="bg-white rounded-xl shadow-md p-4">
-                    <div class="text-2xl font-bold text-red-600" id="closed-clients">0</div>
-                    <div class="text-gray-600 text-sm">Закрытые</div>
-                </div>
-            </div>
-            
-            <!-- Список клиентов -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden fade-in">
-                <div class="p-4 border-b border-gray-200">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-lg font-semibold text-gray-800">
-                            <i class="fas fa-list-ul text-blue-500 mr-2"></i>
-                            Список клиентов
-                        </h2>
-                        <div class="text-sm text-gray-500" id="clients-count">Показано 0 из 0</div>
+                
+                <!-- Статистика -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 fade-in">
+                    <div class="bg-white rounded-xl shadow-md p-4">
+                        <div class="text-2xl font-bold text-blue-600" id="total-clients">0</div>
+                        <div class="text-gray-600 text-sm">Всего клиентов</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-4">
+                        <div class="text-2xl font-bold text-green-600" id="new-clients">0</div>
+                        <div class="text-gray-600 text-sm">Новые</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-4">
+                        <div class="text-2xl font-bold text-yellow-600" id="active-clients">0</div>
+                        <div class="text-gray-600 text-sm">Активные</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-4">
+                        <div class="text-2xl font-bold text-purple-600" id="proposal-clients">0</div>
+                        <div class="text-gray-600 text-sm">Предложения</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-4">
+                        <div class="text-2xl font-bold text-red-600" id="closed-clients">0</div>
+                        <div class="text-gray-600 text-sm">Закрытые</div>
                     </div>
                 </div>
                 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Клиент</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Контакты</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Источник</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
-                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200" id="clients-list">
-                            <tr>
-                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                    <i class="fas fa-inbox text-3xl mb-2"></i>
-                                    <p>Нет клиентов</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- Список клиентов -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden fade-in">
+                    <div class="p-4 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-gray-800">
+                                <i class="fas fa-list-ul text-blue-500 mr-2"></i>
+                                Список клиентов
+                            </h2>
+                            <div class="text-sm text-gray-500" id="clients-count">Показано 0 из 0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Клиент</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Контакты</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Компания</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Источник</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="clients-list">
+                                <tr>
+                                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                                        <p>Нет клиентов</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Пагинация -->
+                    <div class="flex justify-between items-center p-4 border-t border-gray-200">
+                        <button id="prev-page" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50" disabled>
+                            <i class="fas fa-chevron-left mr-2"></i> Назад
+                        </button>
+                        <span id="page-info" class="text-sm text-gray-600">Страница 1 из 1</span>
+                        <button id="next-page" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50" disabled>
+                            Вперед <i class="fas fa-chevron-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Контент компаний -->
+            <div id="companies-tab" class="tab-content">
+                <!-- Фильтры и поиск -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6 fade-in">
+                    <div class="p-4 border-b border-gray-200">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm mb-1">Статус</label>
+                                <select id="company-status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="all">Все</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm mb-1">Индустрия</label>
+                                <select id="industry-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="all">Все</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm mb-1">Поиск</label>
+                                <div class="relative">
+                                    <input type="text" id="company-search" placeholder="Название, телефон, email..." class="w-full pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- Пагинация -->
-                <div class="flex justify-between items-center p-4 border-t border-gray-200">
-                    <button id="prev-page" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50" disabled>
-                        <i class="fas fa-chevron-left mr-2"></i> Назад
-                    </button>
-                    <span id="page-info" class="text-sm text-gray-600">Страница 1 из 1</span>
-                    <button id="next-page" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50" disabled>
-                        Вперед <i class="fas fa-chevron-right ml-2"></i>
-                    </button>
+                <!-- Статистика -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 fade-in">
+                    <div class="bg-white rounded-xl shadow-md p-4">
+                        <div class="text-2xl font-bold text-blue-600" id="total-companies">0</div>
+                        <div class="text-gray-600 text-sm">Всего компаний</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-4">
+                        <div class="text-2xl font-bold text-green-600" id="active-companies">0</div>
+                        <div class="text-gray-600 text-sm">Активные</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-4">
+                        <div class="text-2xl font-bold text-yellow-600" id="partner-companies">0</div>
+                        <div class="text-gray-600 text-sm">Партнёры</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-4">
+                        <div class="text-2xl font-bold text-red-600" id="inactive-companies">0</div>
+                        <div class="text-gray-600 text-sm">Неактивные</div>
+                    </div>
+                </div>
+                
+                <!-- Список компаний -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden fade-in">
+                    <div class="p-4 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-gray-800">
+                                <i class="fas fa-list-ul text-blue-500 mr-2"></i>
+                                Список компаний
+                            </h2>
+                            <div class="text-sm text-gray-500" id="companies-count">Показано 0 из 0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Компания</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Контакты</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Индустрия</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="companies-list">
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                                        <p>Нет компаний</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Пагинация -->
+                    <div class="flex justify-between items-center p-4 border-t border-gray-200">
+                        <button id="prev-company-page" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50" disabled>
+                            <i class="fas fa-chevron-left mr-2"></i> Назад
+                        </button>
+                        <span id="company-page-info" class="text-sm text-gray-600">Страница 1 из 1</span>
+                        <button id="next-company-page" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50" disabled>
+                            Вперед <i class="fas fa-chevron-right ml-2"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -209,7 +328,9 @@
                         
                         <div class="mb-4">
                             <label class="block text-gray-700 mb-2">Компания</label>
-                            <input type="text" id="client-company" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select id="client-company" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Не выбрана</option>
+                            </select>
                         </div>
                         
                         <div class="mb-4">
@@ -222,25 +343,15 @@
                             <input type="email" id="client-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         
-                        <div class="mb-4 md:col-span-2">
+                        <div class="mb-4">
                             <label class="block text-gray-700 mb-2">Источник</label>
                             <select id="client-source" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="website">Сайт</option>
-                                <option value="social">Соцсети</option>
-                                <option value="recommendation">Рекомендация</option>
-                                <option value="ad">Реклама</option>
-                                <option value="other">Другое</option>
                             </select>
                         </div>
                         
-                        <div class="mb-4 md:col-span-2">
+                        <div class="mb-4">
                             <label class="block text-gray-700 mb-2">Статус</label>
                             <select id="client-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="new">Новый</option>
-                                <option value="contacted">Контакт</option>
-                                <option value="proposal">Предложение</option>
-                                <option value="negotiation">Переговоры</option>
-                                <option value="closed">Закрыт</option>
                             </select>
                         </div>
                         
@@ -380,29 +491,350 @@
         </div>
     </div>
 
+    <!-- Модальное окно добавления/редактирования компании -->
+    <div id="company-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto fade-in">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800" id="company-modal-title">Новая компания</h3>
+                <button id="close-company-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="company-form">
+                    <input type="hidden" id="company-id">
+                    
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <!-- Основная информация -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Название*</label>
+                            <input type="text" id="company-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Индустрия</label>
+                            <select id="company-industry" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Телефон</label>
+                            <input type="tel" id="company-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Email</label>
+                            <input type="email" id="company-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Сайт</label>
+                            <input type="url" id="company-website" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Статус</label>
+                            <select id="company-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4 md:col-span-2">
+                            <label class="block text-gray-700 mb-2">Адрес</label>
+                            <input type="text" id="company-address" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div class="mb-4 md:col-span-2">
+                            <label class="block text-gray-700 mb-2">Описание</label>
+                            <textarea id="company-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Описание деятельности компании"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопки -->
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" id="cancel-company" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center">
+                            <i class="fas fa-times mr-2"></i> Отмена
+                        </button>
+                        <button type="submit" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center">
+                            <i class="fas fa-save mr-2"></i> Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно просмотра компании -->
+    <div id="view-company-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto fade-in">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800" id="view-company-name"></h3>
+                <button id="close-view-company-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="grid gap-6 md:grid-cols-3">
+                    <!-- Информация о компании -->
+                    <div class="md:col-span-1">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="flex items-center mb-4">
+                                <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-green-500 text-2xl font-bold" id="company-avatar">
+                                    AI
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold text-lg" id="view-company-fullname">Acme Inc.</h4>
+                                    <div class="text-gray-500 text-sm capitalize" id="view-company-industry">IT</div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="text-xs text-gray-500">Телефон</div>
+                                    <div class="font-medium" id="view-company-phone">+7 (123) 456-78-90</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500">Email</div>
+                                    <div class="font-medium" id="view-company-email">info@example.com</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500">Сайт</div>
+                                    <div class="font-medium" id="view-company-website">example.com</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500">Статус</div>
+                                    <div class="font-medium">
+                                        <span id="view-company-status" class="px-2 py-1 rounded-full text-xs"></span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500">Добавлена</div>
+                                    <div class="font-medium" id="view-company-created">01.01.2023</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <button id="edit-company-btn" class="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center">
+                                    <i class="fas fa-edit mr-2"></i> Редактировать
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Дополнительная информация -->
+                    <div class="md:col-span-2">
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-lg mb-4">Описание</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg" id="view-company-description">
+                                Нет описания
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-lg mb-4">Адрес</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg" id="view-company-address">
+                                Не указан
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-lg mb-4">Сотрудники</h4>
+                            <div class="space-y-3" id="company-employees">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    Нет сотрудников
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно настроек -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto fade-in">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-cog mr-2 text-blue-500"></i>
+                    Настройки CRM
+                </h3>
+                <button id="close-settings-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="mb-6">
+                    <h4 class="font-semibold text-lg mb-4 border-b pb-2">Статусы клиентов</h4>
+                    <div class="space-y-3 mb-4" id="statuses-list">
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 rounded-full bg-gray-500 mr-3"></span>
+                                <span>Новый</span>
+                            </div>
+                            <button class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <form id="add-status-form" class="flex items-center">
+                        <input type="color" id="status-color" value="#6b7280" class="w-8 h-8 mr-3">
+                        <input type="text" id="status-name" placeholder="Новый статус" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <button type="submit" class="ml-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="font-semibold text-lg mb-4 border-b pb-2">Источники клиентов</h4>
+                    <div class="space-y-3 mb-4" id="sources-list">
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <span>Сайт</span>
+                            <button class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <form id="add-source-form" class="flex">
+                        <input type="text" id="source-name" placeholder="Новый источник" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <button type="submit" class="ml-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="font-semibold text-lg mb-4 border-b pb-2">Статусы компаний</h4>
+                    <div class="space-y-3 mb-4" id="company-statuses-list">
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 rounded-full bg-green-500 mr-3"></span>
+                                <span>Активна</span>
+                            </div>
+                            <button class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <form id="add-company-status-form" class="flex items-center">
+                        <input type="color" id="company-status-color" value="#10b981" class="w-8 h-8 mr-3">
+                        <input type="text" id="company-status-name" placeholder="Новый статус" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <button type="submit" class="ml-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-lg mb-4 border-b pb-2">Индустрии компаний</h4>
+                    <div class="space-y-3 mb-4" id="industries-list">
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <span>IT</span>
+                            <button class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <form id="add-industry-form" class="flex">
+                        <input type="text" id="industry-name" placeholder="Новая индустрия" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <button type="submit" class="ml-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Состояние приложения
         const crmState = {
             clients: [],
+            companies: [],
+            settings: {
+                statuses: [
+                    { name: 'Новый', value: 'new', color: '#6b7280' },
+                    { name: 'Контакт', value: 'contacted', color: '#3b82f6' },
+                    { name: 'Предложение', value: 'proposal', color: '#f59e0b' },
+                    { name: 'Переговоры', value: 'negotiation', color: '#8b5cf6' },
+                    { name: 'Закрыт', value: 'closed', color: '#10b981' }
+                ],
+                sources: [
+                    { name: 'Сайт', value: 'website' },
+                    { name: 'Соцсети', value: 'social' },
+                    { name: 'Рекомендация', value: 'recommendation' },
+                    { name: 'Реклама', value: 'ad' },
+                    { name: 'Другое', value: 'other' }
+                ],
+                companyStatuses: [
+                    { name: 'Активна', value: 'active', color: '#10b981' },
+                    { name: 'Партнёр', value: 'partner', color: '#8b5cf6' },
+                    { name: 'Неактивна', value: 'inactive', color: '#6b7280' }
+                ],
+                industries: [
+                    { name: 'IT', value: 'it' },
+                    { name: 'Финансы', value: 'finance' },
+                    { name: 'Розница', value: 'retail' },
+                    { name: 'Производство', value: 'manufacturing' },
+                    { name: 'Услуги', value: 'services' }
+                ]
+            },
+            currentTab: 'clients',
             currentPage: 1,
+            currentCompanyPage: 1,
             itemsPerPage: 10,
             statusFilter: 'all',
             sourceFilter: 'all',
-            dateFrom: '',
+            companyFilter: 'all',
+            companyStatusFilter: 'all',
+            industryFilter: 'all',
             searchQuery: '',
+            companySearchQuery: '',
             editClientId: null,
-            viewClientId: null
+            viewClientId: null,
+            editCompanyId: null,
+            viewCompanyId: null
         };
         
         // Элементы DOM
         const crmElements = {
+            // Кнопки
             newClientBtn: document.getElementById('new-client-btn'),
+            newCompanyBtn: document.getElementById('new-company-btn'),
+            settingsBtn: document.getElementById('settings-btn'),
+            
+            // Модальные окна
             clientModal: document.getElementById('client-modal'),
             viewClientModal: document.getElementById('view-client-modal'),
+            companyModal: document.getElementById('company-modal'),
+            viewCompanyModal: document.getElementById('view-company-modal'),
+            settingsModal: document.getElementById('settings-modal'),
+            
+            // Закрытие модальных окон
             closeClientModal: document.getElementById('close-client-modal'),
             closeViewClientModal: document.getElementById('close-view-client-modal'),
+            closeCompanyModal: document.getElementById('close-company-modal'),
+            closeViewCompanyModal: document.getElementById('close-view-company-modal'),
+            closeSettingsModal: document.getElementById('close-settings-modal'),
+            
+            // Отмена форм
             cancelClient: document.getElementById('cancel-client'),
+            cancelCompany: document.getElementById('cancel-company'),
+            
+            // Формы
             clientForm: document.getElementById('client-form'),
+            companyForm: document.getElementById('company-form'),
+            interactionForm: document.getElementById('interaction-form'),
+            addStatusForm: document.getElementById('add-status-form'),
+            addSourceForm: document.getElementById('add-source-form'),
+            addCompanyStatusForm: document.getElementById('add-company-status-form'),
+            addIndustryForm: document.getElementById('add-industry-form'),
+            
+            // Поля формы клиента
             clientId: document.getElementById('client-id'),
             clientName: document.getElementById('client-name'),
             clientCompany: document.getElementById('client-company'),
@@ -412,20 +844,73 @@
             clientStatus: document.getElementById('client-status'),
             clientNotes: document.getElementById('client-notes'),
             modalTitle: document.getElementById('modal-title'),
+            
+            // Поля формы компании
+            companyId: document.getElementById('company-id'),
+            companyName: document.getElementById('company-name'),
+            companyIndustry: document.getElementById('company-industry'),
+            companyPhone: document.getElementById('company-phone'),
+            companyEmail: document.getElementById('company-email'),
+            companyWebsite: document.getElementById('company-website'),
+            companyStatus: document.getElementById('company-status'),
+            companyAddress: document.getElementById('company-address'),
+            companyDescription: document.getElementById('company-description'),
+            companyModalTitle: document.getElementById('company-modal-title'),
+            
+            // Поля формы настроек
+            statusColor: document.getElementById('status-color'),
+            statusName: document.getElementById('status-name'),
+            sourceName: document.getElementById('source-name'),
+            companyStatusColor: document.getElementById('company-status-color'),
+            companyStatusName: document.getElementById('company-status-name'),
+            industryName: document.getElementById('industry-name'),
+            
+            // Фильтры
             statusFilter: document.getElementById('status-filter'),
             sourceFilter: document.getElementById('source-filter'),
-            dateFrom: document.getElementById('date-from'),
+            companyFilter: document.getElementById('company-filter'),
+            companyStatusFilter: document.getElementById('company-status-filter'),
+            industryFilter: document.getElementById('industry-filter'),
             search: document.getElementById('search'),
+            companySearch: document.getElementById('company-search'),
+            
+            // Табы
+            tabBtns: document.querySelectorAll('.tab-btn'),
+            clientsTab: document.getElementById('clients-tab'),
+            companiesTab: document.getElementById('companies-tab'),
+            
+            // Списки
             clientsList: document.getElementById('clients-list'),
-            clientsCount: document.getElementById('clients-count'),
+            companiesList: document.getElementById('companies-list'),
+            statusesList: document.getElementById('statuses-list'),
+            sourcesList: document.getElementById('sources-list'),
+            companyStatusesList: document.getElementById('company-statuses-list'),
+            industriesList: document.getElementById('industries-list'),
+            
+            // Пагинация
             prevPage: document.getElementById('prev-page'),
             nextPage: document.getElementById('next-page'),
             pageInfo: document.getElementById('page-info'),
+            prevCompanyPage: document.getElementById('prev-company-page'),
+            nextCompanyPage: document.getElementById('next-company-page'),
+            companyPageInfo: document.getElementById('company-page-info'),
+            
+            // Статистика
             totalClients: document.getElementById('total-clients'),
             newClients: document.getElementById('new-clients'),
             activeClients: document.getElementById('active-clients'),
             proposalClients: document.getElementById('proposal-clients'),
             closedClients: document.getElementById('closed-clients'),
+            totalCompanies: document.getElementById('total-companies'),
+            activeCompanies: document.getElementById('active-companies'),
+            partnerCompanies: document.getElementById('partner-companies'),
+            inactiveCompanies: document.getElementById('inactive-companies'),
+            
+            // Счетчики
+            clientsCount: document.getElementById('clients-count'),
+            companiesCount: document.getElementById('companies-count'),
+            
+            // Просмотр клиента
             viewClientName: document.getElementById('view-client-name'),
             viewClientFullname: document.getElementById('view-client-fullname'),
             viewClientCompany: document.getElementById('view-client-company'),
@@ -438,60 +923,393 @@
             clientAvatar: document.getElementById('client-avatar'),
             clientHistory: document.getElementById('client-history'),
             editClientBtn: document.getElementById('edit-client-btn'),
-            interactionForm: document.getElementById('interaction-form'),
             interactionClientId: document.getElementById('interaction-client-id'),
             interactionType: document.getElementById('interaction-type'),
-            interactionComment: document.getElementById('interaction-comment')
+            interactionComment: document.getElementById('interaction-comment'),
+            
+            // Просмотр компании
+            viewCompanyName: document.getElementById('view-company-name'),
+            viewCompanyFullname: document.getElementById('view-company-fullname'),
+            viewCompanyIndustry: document.getElementById('view-company-industry'),
+            viewCompanyPhone: document.getElementById('view-company-phone'),
+            viewCompanyEmail: document.getElementById('view-company-email'),
+            viewCompanyWebsite: document.getElementById('view-company-website'),
+            viewCompanyStatus: document.getElementById('view-company-status'),
+            viewCompanyCreated: document.getElementById('view-company-created'),
+            viewCompanyDescription: document.getElementById('view-company-description'),
+            viewCompanyAddress: document.getElementById('view-company-address'),
+            companyAvatar: document.getElementById('company-avatar'),
+            companyEmployees: document.getElementById('company-employees'),
+            editCompanyBtn: document.getElementById('edit-company-btn')
         };
         
         // Инициализация приложения
         function initCRM() {
             // Загружаем данные из localStorage
-            loadClientsFromStorage();
+            loadDataFromStorage();
             
             // Настройка обработчиков событий
             setupCRMEventListeners();
             
-            // Инициализация пагинации
-            updatePagination();
+            // Инициализация интерфейса
+            initUI();
             
             // Обновляем статистику
             updateStatistics();
         }
         
         // Загрузка данных из localStorage
-        function loadClientsFromStorage() {
+        function loadDataFromStorage() {
             const savedClients = localStorage.getItem('crm-clients');
-            if (savedClients) {
-                crmState.clients = JSON.parse(savedClients);
-                renderClients();
-            }
+            const savedCompanies = localStorage.getItem('crm-companies');
+            const savedSettings = localStorage.getItem('crm-settings');
+            
+            if (savedClients) crmState.clients = JSON.parse(savedClients);
+            if (savedCompanies) crmState.companies = JSON.parse(savedCompanies);
+            if (savedSettings) crmState.settings = JSON.parse(savedSettings);
+            
+            renderClients();
+            renderCompanies();
         }
         
         // Сохранение данных в localStorage
-        function saveClientsToStorage() {
+        function saveDataToStorage() {
             localStorage.setItem('crm-clients', JSON.stringify(crmState.clients));
+            localStorage.setItem('crm-companies', JSON.stringify(crmState.companies));
+            localStorage.setItem('crm-settings', JSON.stringify(crmState.settings));
+        }
+        
+        // Инициализация интерфейса
+        function initUI() {
+            // Заполняем фильтры статусов
+            updateStatusFilters();
+            
+            // Заполняем фильтры источников
+            updateSourceFilters();
+            
+            // Заполняем фильтры компаний
+            updateCompanyFilters();
+            
+            // Заполняем фильтры статусов компаний
+            updateCompanyStatusFilters();
+            
+            // Заполняем фильтры индустрий
+            updateIndustryFilters();
+            
+            // Заполняем выпадающие списки в формах
+            updateFormSelects();
+        }
+        
+        // Обновление фильтров статусов
+        function updateStatusFilters() {
+            crmElements.statusFilter.innerHTML = '<option value="all">Все</option>';
+            crmState.settings.statuses.forEach(status => {
+                crmElements.statusFilter.innerHTML += `<option value="${status.value}">${status.name}</option>`;
+            });
+            
+            crmElements.clientStatus.innerHTML = '';
+            crmState.settings.statuses.forEach(status => {
+                crmElements.clientStatus.innerHTML += `<option value="${status.value}">${status.name}</option>`;
+            });
+        }
+        
+        // Обновление фильтров источников
+        function updateSourceFilters() {
+            crmElements.sourceFilter.innerHTML = '<option value="all">Все</option>';
+            crmState.settings.sources.forEach(source => {
+                crmElements.sourceFilter.innerHTML += `<option value="${source.value}">${source.name}</option>`;
+            });
+            
+            crmElements.clientSource.innerHTML = '';
+            crmState.settings.sources.forEach(source => {
+                crmElements.clientSource.innerHTML += `<option value="${source.value}">${source.name}</option>`;
+            });
+        }
+        
+        // Обновление фильтров компаний
+        function updateCompanyFilters() {
+            crmElements.companyFilter.innerHTML = '<option value="all">Все</option>';
+            crmState.companies.forEach(company => {
+                crmElements.companyFilter.innerHTML += `<option value="${company.id}">${company.name}</option>`;
+            });
+            
+            crmElements.clientCompany.innerHTML = '<option value="">Не выбрана</option>';
+            crmState.companies.forEach(company => {
+                crmElements.clientCompany.innerHTML += `<option value="${company.id}">${company.name}</option>`;
+            });
+        }
+        
+        // Обновление фильтров статусов компаний
+        function updateCompanyStatusFilters() {
+            crmElements.companyStatusFilter.innerHTML = '<option value="all">Все</option>';
+            crmState.settings.companyStatuses.forEach(status => {
+                crmElements.companyStatusFilter.innerHTML += `<option value="${status.value}">${status.name}</option>`;
+            });
+            
+            crmElements.companyStatus.innerHTML = '';
+            crmState.settings.companyStatuses.forEach(status => {
+                crmElements.companyStatus.innerHTML += `<option value="${status.value}">${status.name}</option>`;
+            });
+        }
+        
+        // Обновление фильтров индустрий
+        function updateIndustryFilters() {
+            crmElements.industryFilter.innerHTML = '<option value="all">Все</option>';
+            crmState.settings.industries.forEach(industry => {
+                crmElements.industryFilter.innerHTML += `<option value="${industry.value}">${industry.name}</option>`;
+            });
+            
+            crmElements.companyIndustry.innerHTML = '';
+            crmState.settings.industries.forEach(industry => {
+                crmElements.companyIndustry.innerHTML += `<option value="${industry.value}">${industry.name}</option>`;
+            });
+        }
+        
+        // Обновление выпадающих списков в формах
+        function updateFormSelects() {
+            // Для клиентов
+            crmElements.clientStatus.innerHTML = '';
+            crmState.settings.statuses.forEach(status => {
+                crmElements.clientStatus.innerHTML += `<option value="${status.value}">${status.name}</option>`;
+            });
+            
+            crmElements.clientSource.innerHTML = '';
+            crmState.settings.sources.forEach(source => {
+                crmElements.clientSource.innerHTML += `<option value="${source.value}">${source.name}</option>`;
+            });
+            
+            crmElements.clientCompany.innerHTML = '<option value="">Не выбрана</option>';
+            crmState.companies.forEach(company => {
+                crmElements.clientCompany.innerHTML += `<option value="${company.id}">${company.name}</option>`;
+            });
+            
+            // Для компаний
+            crmElements.companyStatus.innerHTML = '';
+            crmState.settings.companyStatuses.forEach(status => {
+                crmElements.companyStatus.innerHTML += `<option value="${status.value}">${status.name}</option>`;
+            });
+            
+            crmElements.companyIndustry.innerHTML = '';
+            crmState.settings.industries.forEach(industry => {
+                crmElements.companyIndustry.innerHTML += `<option value="${industry.value}">${industry.name}</option>`;
+            });
+        }
+        
+        // Обновление списка статусов в настройках
+        function updateStatusesList() {
+            crmElements.statusesList.innerHTML = '';
+            crmState.settings.statuses.forEach(status => {
+                const statusElement = document.createElement('div');
+                statusElement.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg';
+                statusElement.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 rounded-full mr-3" style="background-color: ${status.color}"></span>
+                        <span>${status.name}</span>
+                    </div>
+                    <button class="delete-status-btn text-red-500 hover:text-red-700" data-value="${status.value}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                crmElements.statusesList.appendChild(statusElement);
+            });
+            
+            // Добавляем обработчики для кнопок удаления
+            document.querySelectorAll('.delete-status-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const statusValue = this.dataset.value;
+                    deleteStatus(statusValue);
+                });
+            });
+        }
+        
+        // Обновление списка источников в настройках
+        function updateSourcesList() {
+            crmElements.sourcesList.innerHTML = '';
+            crmState.settings.sources.forEach(source => {
+                const sourceElement = document.createElement('div');
+                sourceElement.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg';
+                sourceElement.innerHTML = `
+                    <span>${source.name}</span>
+                    <button class="delete-source-btn text-red-500 hover:text-red-700" data-value="${source.value}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                crmElements.sourcesList.appendChild(sourceElement);
+            });
+            
+            // Добавляем обработчики для кнопок удаления
+            document.querySelectorAll('.delete-source-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sourceValue = this.dataset.value;
+                    deleteSource(sourceValue);
+                });
+            });
+        }
+        
+        // Обновление списка статусов компаний в настройках
+        function updateCompanyStatusesList() {
+            crmElements.companyStatusesList.innerHTML = '';
+            crmState.settings.companyStatuses.forEach(status => {
+                const statusElement = document.createElement('div');
+                statusElement.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg';
+                statusElement.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 rounded-full mr-3" style="background-color: ${status.color}"></span>
+                        <span>${status.name}</span>
+                    </div>
+                    <button class="delete-company-status-btn text-red-500 hover:text-red-700" data-value="${status.value}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                crmElements.companyStatusesList.appendChild(statusElement);
+            });
+            
+            // Добавляем обработчики для кнопок удаления
+            document.querySelectorAll('.delete-company-status-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const statusValue = this.dataset.value;
+                    deleteCompanyStatus(statusValue);
+                });
+            });
+        }
+        
+        // Обновление списка индустрий в настройках
+        function updateIndustriesList() {
+            crmElements.industriesList.innerHTML = '';
+            crmState.settings.industries.forEach(industry => {
+                const industryElement = document.createElement('div');
+                industryElement.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg';
+                industryElement.innerHTML = `
+                    <span>${industry.name}</span>
+                    <button class="delete-industry-btn text-red-500 hover:text-red-700" data-value="${industry.value}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                crmElements.industriesList.appendChild(industryElement);
+            });
+            
+            // Добавляем обработчики для кнопок удаления
+            document.querySelectorAll('.delete-industry-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const industryValue = this.dataset.value;
+                    deleteIndustry(industryValue);
+                });
+            });
+        }
+        
+        // Удаление статуса
+        function deleteStatus(statusValue) {
+            if (crmState.settings.statuses.length <= 1) {
+                showNotification('Должен остаться хотя бы один статус', 'error');
+                return;
+            }
+            
+            crmState.settings.statuses = crmState.settings.statuses.filter(s => s.value !== statusValue);
+            saveDataToStorage();
+            updateStatusesList();
+            updateStatusFilters();
+            renderClients();
+            showNotification('Статус удалён', 'success');
+        }
+        
+        // Удаление источника
+        function deleteSource(sourceValue) {
+            if (crmState.settings.sources.length <= 1) {
+                showNotification('Должен остаться хотя бы один источник', 'error');
+                return;
+            }
+            
+            crmState.settings.sources = crmState.settings.sources.filter(s => s.value !== sourceValue);
+            saveDataToStorage();
+            updateSourcesList();
+            updateSourceFilters();
+            renderClients();
+            showNotification('Источник удалён', 'success');
+        }
+        
+        // Удаление статуса компании
+        function deleteCompanyStatus(statusValue) {
+            if (crmState.settings.companyStatuses.length <= 1) {
+                showNotification('Должен остаться хотя бы один статус компании', 'error');
+                return;
+            }
+            
+            crmState.settings.companyStatuses = crmState.settings.companyStatuses.filter(s => s.value !== statusValue);
+            saveDataToStorage();
+            updateCompanyStatusesList();
+            updateCompanyStatusFilters();
+            renderCompanies();
+            showNotification('Статус компании удалён', 'success');
+        }
+        
+        // Удаление индустрии
+        function deleteIndustry(industryValue) {
+            if (crmState.settings.industries.length <= 1) {
+                showNotification('Должен остаться хотя бы один тип индустрии', 'error');
+                return;
+            }
+            
+            crmState.settings.industries = crmState.settings.industries.filter(i => i.value !== industryValue);
+            saveDataToStorage();
+            updateIndustriesList();
+            updateIndustryFilters();
+            renderCompanies();
+            showNotification('Индустрия удалена', 'success');
         }
         
         // Настройка обработчиков событий
         function setupCRMEventListeners() {
+            // Переключение табов
+            crmElements.tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tab = this.dataset.tab;
+                    switchTab(tab);
+                });
+            });
+            
             // Открытие модального окна добавления клиента
             crmElements.newClientBtn.addEventListener('click', function() {
                 openClientModal();
             });
             
-            // Закрытие модального окна
+            // Открытие модального окна добавления компании
+            crmElements.newCompanyBtn.addEventListener('click', function() {
+                openCompanyModal();
+            });
+            
+            // Открытие модального окна настроек
+            crmElements.settingsBtn.addEventListener('click', function() {
+                openSettingsModal();
+            });
+            
+            // Закрытие модальных окон
             crmElements.closeClientModal.addEventListener('click', function() {
                 crmElements.clientModal.classList.add('hidden');
             });
             
+            crmElements.closeViewClientModal.addEventListener('click', function() {
+                crmElements.viewClientModal.classList.add('hidden');
+            });
+            
+            crmElements.closeCompanyModal.addEventListener('click', function() {
+                crmElements.companyModal.classList.add('hidden');
+            });
+            
+            crmElements.closeViewCompanyModal.addEventListener('click', function() {
+                crmElements.viewCompanyModal.classList.add('hidden');
+            });
+            
+            crmElements.closeSettingsModal.addEventListener('click', function() {
+                crmElements.settingsModal.classList.add('hidden');
+            });
+            
+            // Отмена форм
             crmElements.cancelClient.addEventListener('click', function() {
                 crmElements.clientModal.classList.add('hidden');
             });
             
-            // Закрытие модального окна просмотра
-            crmElements.closeViewClientModal.addEventListener('click', function() {
-                crmElements.viewClientModal.classList.add('hidden');
+            crmElements.cancelCompany.addEventListener('click', function() {
+                crmElements.companyModal.classList.add('hidden');
             });
             
             // Обработка отправки формы клиента
@@ -501,7 +1319,7 @@
                 const clientData = {
                     id: crmElements.clientId.value ? parseInt(crmElements.clientId.value) : Date.now(),
                     name: crmElements.clientName.value.trim(),
-                    company: crmElements.clientCompany.value.trim(),
+                    companyId: crmElements.clientCompany.value ? parseInt(crmElements.clientCompany.value) : null,
                     phone: crmElements.clientPhone.value.trim(),
                     email: crmElements.clientEmail.value.trim(),
                     source: crmElements.clientSource.value,
@@ -539,7 +1357,7 @@
                 }
                 
                 // Сохраняем и обновляем интерфейс
-                saveClientsToStorage();
+                saveDataToStorage();
                 renderClients();
                 updateStatistics();
                 updatePagination();
@@ -551,451 +1369,997 @@
                 this.reset();
             });
             
-            // Фильтрация клиентов
-            crmElements.statusFilter.addEventListener('change', function() {
-                crmState.statusFilter = this.value;
-                crmState.currentPage = 1;
-                renderClients();
-                updatePagination();
-            });
-            
-            crmElements.sourceFilter.addEventListener('change', function() {
-                crmState.sourceFilter = this.value;
-                crmState.currentPage = 1;
-                renderClients();
-                updatePagination();
-            });
-            
-            crmElements.dateFrom.addEventListener('change', function() {
-                crmState.dateFrom = this.value;
-                crmState.currentPage = 1;
-                renderClients();
-                updatePagination();
-            });
-            
-            crmElements.search.addEventListener('input', function() {
-                crmState.searchQuery = this.value.toLowerCase();
-                crmState.currentPage = 1;
-                renderClients();
-                updatePagination();
-            });
-            
-            // Пагинация
-            crmElements.prevPage.addEventListener('click', function() {
-                if (crmState.currentPage > 1) {
-                    crmState.currentPage--;
-                    renderClients();
-                    updatePagination();
-                }
-            });
-            
-            crmElements.nextPage.addEventListener('click', function() {
-                const filteredClients = getFilteredClients();
-                const totalPages = Math.ceil(filteredClients.length / crmState.itemsPerPage);
-                
-                if (crmState.currentPage < totalPages) {
-                    crmState.currentPage++;
-                    renderClients();
-                    updatePagination();
-                }
-            });
-            
-            // Редактирование клиента из окна просмотра
-            crmElements.editClientBtn.addEventListener('click', function() {
-                crmElements.viewClientModal.classList.add('hidden');
-                openClientModal(crmState.viewClientId);
-            });
-            
-            // Добавление взаимодействия
-            crmElements.interactionForm.addEventListener('submit', function(e) {
+            // Обработка отправки формы компании
+            crmElements.companyForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                const clientId = parseInt(crmElements.interactionClientId.value);
-                const clientIndex = crmState.clients.findIndex(c => c.id === clientId);
+                const companyData = {
+                    id: crmElements.companyId.value ? parseInt(crmElements.companyId.value) : Date.now(),
+                    name: crmElements.companyName.value.trim(),
+                    industry: crmElements.companyIndustry.value,
+                    phone: crmElements.companyPhone.value.trim(),
+                    email: crmElements.companyEmail.value.trim(),
+                    website: crmElements.companyWebsite.value.trim(),
+                    status: crmElements.companyStatus.value,
+                    address: crmElements.companyAddress.value.trim(),
+                    description: crmElements.companyDescription.value.trim(),
+                    createdAt: crmElements.companyId.value ? 
+                        crmState.companies.find(c => c.id === parseInt(crmElements.companyId.value)).createdAt : 
+                        new Date().toISOString()
+                };
                 
-                if (clientIndex !== -1) {
-                    const interaction = {
-                        type: crmElements.interactionType.value,
-                        comment: crmElements.interactionComment.value.trim(),
-                        date: new Date().toISOString()
-                    };
-                    
-                    crmState.clients[clientIndex].interactions.push(interaction);
-                    saveClientsToStorage();
-                    
-                    // Обновляем историю
-                    renderClientHistory(clientId);
-                    
-                    // Сбрасываем форму
-                    crmElements.interactionComment.value = '';
-                    
-                    showNotification('Взаимодействие добавлено', 'success');
-                }
-            });
-        }
-        
-        // Открытие модального окна клиента
-        function openClientModal(clientId = null) {
-            if (clientId) {
-                // Редактирование существующего клиента
-                const client = crmState.clients.find(c => c.id === clientId);
-                if (client) {
-                    crmElements.modalTitle.textContent = 'Редактирование клиента';
-                    crmElements.clientId.value = client.id;
-                    crmElements.clientName.value = client.name;
-                    crmElements.clientCompany.value = client.company || '';
-                    crmElements.clientPhone.value = client.phone;
-                    crmElements.clientEmail.value = client.email || '';
-                    crmElements.clientSource.value = client.source;
-                    crmElements.clientStatus.value = client.status;
-                    crmElements.clientNotes.value = client.notes || '';
-                }
-            } else {
-                // Добавление нового клиента
-                crmElements.modalTitle.textContent = 'Новый клиент';
-                crmElements.clientId.value = '';
-                crmElements.clientForm.reset();
-                crmElements.clientStatus.value = 'new';
-            }
-            
-            crmElements.clientModal.classList.remove('hidden');
-        }
-        
-        // Открытие модального окна просмотра клиента
-        function openViewClientModal(clientId) {
-            const client = crmState.clients.find(c => c.id === clientId);
-            if (!client) return;
-            
-            crmState.viewClientId = clientId;
-            
-            // Заполняем данные клиента
-            const createdAt = new Date(client.createdAt);
-            const formattedDate = createdAt.toLocaleDateString('ru-RU', {
-                day: 'numeric',
-                month: 'numeric',
-                year: 'numeric'
-            });
-            
-            // Генерируем аватар из инициалов
-            const initials = client.name.split(' ').map(n => n[0]).join('').toUpperCase();
-            
-            crmElements.viewClientName.textContent = client.name;
-            crmElements.viewClientFullname.textContent = client.name;
-            crmElements.viewClientCompany.textContent = client.company || 'Не указано';
-            crmElements.viewClientPhone.textContent = client.phone;
-            crmElements.viewClientEmail.textContent = client.email || 'Не указан';
-            crmElements.viewClientSource.textContent = getSourceName(client.source);
-            crmElements.viewClientCreated.textContent = formattedDate;
-            crmElements.viewClientNotes.textContent = client.notes || 'Нет заметок';
-            crmElements.clientAvatar.textContent = initials;
-            crmElements.interactionClientId.value = clientId;
-            
-            // Устанавливаем статус
-            const statusElement = crmElements.viewClientStatus;
-            statusElement.textContent = getStatusName(client.status);
-            statusElement.className = 'px-2 py-1 rounded-full text-xs ' + getStatusClass(client.status);
-            
-            // Заполняем историю взаимодействий
-            renderClientHistory(clientId);
-            
-            // Открываем модальное окно
-            crmElements.viewClientModal.classList.remove('hidden');
-        }
-        
-        // Рендер истории взаимодействий
-        function renderClientHistory(clientId) {
-            const client = crmState.clients.find(c => c.id === clientId);
-            if (!client) return;
-            
-            crmElements.clientHistory.innerHTML = '';
-            
-            // Сортируем взаимодействия по дате (новые сверху)
-            const sortedInteractions = [...client.interactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            sortedInteractions.forEach(interaction => {
-                const date = new Date(interaction.date);
-                const formattedDate = date.toLocaleDateString('ru-RU', {
-                    day: 'numeric',
-                    month: 'numeric',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                let icon, iconClass, title;
-                
-                switch(interaction.type) {
-                    case 'created':
-                        icon = 'fa-user-plus';
-                        iconClass = 'bg-blue-100 text-blue-500';
-                        title = 'Клиент добавлен в систему';
-                        break;
-                    case 'updated':
-                        icon = 'fa-edit';
-                        iconClass = 'bg-yellow-100 text-yellow-500';
-                        title = 'Данные клиента обновлены';
-                        break;
-                    case 'call':
-                        icon = 'fa-phone';
-                        iconClass = 'bg-green-100 text-green-500';
-                        title = 'Звонок';
-                        break;
-                    case 'meeting':
-                        icon = 'fa-handshake';
-                        iconClass = 'bg-purple-100 text-purple-500';
-                        title = 'Встреча';
-                        break;
-                    case 'email':
-                        icon = 'fa-envelope';
-                        iconClass = 'bg-red-100 text-red-500';
-                        title = 'Email';
-                        break;
-                    case 'message':
-                        icon = 'fa-comment';
-                        iconClass = 'bg-indigo-100 text-indigo-500';
-                        title = 'Сообщение';
-                        break;
-                    default:
-                        icon = 'fa-circle';
-                        iconClass = 'bg-gray-100 text-gray-500';
-                        title = 'Взаимодействие';
+                if (crmElements.companyId.value) {
+                    // Редактирование существующей компании
+                    const index = crmState.companies.findIndex(c => c.id === parseInt(crmElements.companyId.value));
+                    crmState.companies[index] = companyData;
+                    showNotification('Компания успешно обновлена', 'success');
+                } else {
+                    // Добавление новой компании
+                    crmState.companies.unshift(companyData);
+                    showNotification('Компания успешно добавлена', 'success');
                 }
                 
-                const interactionElement = document.createElement('div');
-                interactionElement.className = 'relative timeline-item pl-10';
-                interactionElement.innerHTML = `
-                    <div class="absolute left-0 top-0 w-8 h-8 rounded-full ${iconClass} flex items-center justify-center">
-                        <i class="fas ${icon}"></i>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="font-medium">${title}</div>
-                                <div class="text-sm text-gray-500">${formattedDate}</div>
-                                ${interaction.comment ? `<div class="mt-2 text-sm">${interaction.comment}</div>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
+                // Сохраняем и обновляем интерфейс
+                saveDataToStorage();
+                renderCompanies();
+                updateCompanyFilters();
+                updateStatistics();
+                updateCompanyPagination();
                 
-                crmElements.clientHistory.appendChild(interactionElement);
+                // Закрываем модальное окно
+                crmElements.companyModal.classList.add('hidden');
+                
+                // Сбрасываем форму
+                this.reset();
             });
-        }
-        
-        // Получение отфильтрованных клиентов
-        function getFilteredClients() {
-            let filteredClients = [...crmState.clients];
             
-            // Фильтрация по статусу
-            if (crmState.statusFilter !== 'all') {
-                filteredClients = filteredClients.filter(c => c.status === crmState.statusFilter);
-            }
-            
-            // Фильтрация по источнику
-            if (crmState.sourceFilter !== 'all') {
-                filteredClients = filteredClients.filter(c => c.source === crmState.sourceFilter);
-            }
-            
-            // Фильтрация по дате
-            if (crmState.dateFrom) {
-                filteredClients = filteredClients.filter(c => {
-                    const clientDate = new Date(c.createdAt).toISOString().split('T')[0];
-                    return clientDate >= crmState.dateFrom;
+            // Обработка отправки формы добавления статуса
+            crmElements.addStatusForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const statusName = crmElements.statusName.value.trim();
+                const statusColor = crmElements.statusColor.value;
+                const statusValue = statusName.toLowerCase().replace(/\s+/g, '-');
+                
+                if (crmState.settings.statuses.some(s => s.value === statusValue)) {
+                    showNotification('Статус с таким значением уже существует', 'error');
+                    return;
+                }
+                
+                crmState.settings.statuses.push({
+                    name: statusName,
+                    value: statusValue,
+                    color: statusColor
                 });
-            }
+                
+                saveDataToStorage();
+                updateStatusesList();
+                updateStatusFilters();
+                renderClients();
+                crmElements.statusName.value = '';
+                showNotification('Статус добавлен', 'success');
+            });
             
-            // Поиск
-            if (crmState.searchQuery) {
-                filteredClients = filteredClients.filter(c => {
-                    return c.name.toLowerCase().includes(crmState.searchQuery) ||
-                           (c.company && c.company.toLowerCase().includes(crmState.searchQuery)) ||
-                           c.phone.toLowerCase().includes(crmState.searchQuery) ||
-                           (c.email && c.email.toLowerCase().includes(crmState.searchQuery));
-                });
-            }
-            
-            return filteredClients;
-        }
+            // Обработка отправки формы добавления источника
+            crmElements.addSourceForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const sourceName = crmElements.sourceName.value.trim();
+                const sourceValue = sourceName.toLowerCase().replace(/\s+/g, '-');
+                
+                if (crmState.settings.sources.some(s => s.value === sourceValue)) {
+                    showNotification('Источник с таким значением уже существует', 'error');
+                    return;
+                }
+                crmState.settings.sources.push({
+name: sourceName,
+value: sourceValue
+});
+
+            saveDataToStorage();
+            updateSourcesList();
+            updateSourceFilters();
+            renderClients();
+            crmElements.sourceName.value = '';
+            showNotification('Источник добавлен', 'success');
+        });
         
-        // Рендер списка клиентов
-        function renderClients() {
-            const filteredClients = getFilteredClients();
+        // Обработка отправки формы добавления статуса компании
+        crmElements.addCompanyStatusForm.addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            // Пагинация
-            const startIndex = (crmState.currentPage - 1) * crmState.itemsPerPage;
-            const endIndex = startIndex + crmState.itemsPerPage;
-            const paginatedClients = filteredClients.slice(startIndex, endIndex);
+            const statusName = crmElements.companyStatusName.value.trim();
+            const statusColor = crmElements.companyStatusColor.value;
+            const statusValue = statusName.toLowerCase().replace(/\s+/g, '-');
             
-            crmElements.clientsList.innerHTML = '';
-            
-            if (paginatedClients.length === 0) {
-                crmElements.clientsList.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                            <i class="fas fa-inbox text-3xl mb-2"></i>
-                            <p>Нет клиентов</p>
-                        </td>
-                    </tr>
-                `;
+            if (crmState.settings.companyStatuses.some(s => s.value === statusValue)) {
+                showNotification('Статус компании с таким значением уже существует', 'error');
                 return;
             }
             
-            paginatedClients.forEach(client => {
-                const createdAt = new Date(client.createdAt);
-                const formattedDate = createdAt.toLocaleDateString('ru-RU', {
-                    day: 'numeric',
-                    month: 'numeric',
-                    year: 'numeric'
-                });
-                
-                const clientElement = document.createElement('tr');
-                clientElement.className = 'hover:bg-gray-50';
-                clientElement.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">
-                                ${client.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                            </div>
-                            <div class="ml-4">
-                                <div class="font-medium text-gray-900">${client.name}</div>
-                                <div class="text-gray-500 text-sm">${client.company || ''}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-gray-900">${client.phone}</div>
-                        <div class="text-gray-500 text-sm">${client.email || ''}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 ${getStatusClass(client.status)} rounded-full text-xs">
-                            ${getStatusName(client.status)}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap capitalize">
-                        ${getSourceName(client.source)}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-gray-900">${formattedDate}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button class="text-blue-500 hover:text-blue-700 mr-3 view-client-btn" data-id="${client.id}">
-                            <i class="fas fa-eye mr-1"></i>
-                        </button>
-                        <button class="text-gray-500 hover:text-gray-700 edit-client-btn" data-id="${client.id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </td>
-                `;
-                
-                crmElements.clientsList.appendChild(clientElement);
+            crmState.settings.companyStatuses.push({
+                name: statusName,
+                value: statusValue,
+                color: statusColor
             });
             
-            // Обновляем счетчик клиентов
-            crmElements.clientsCount.textContent = `Показано ${paginatedClients.length} из ${filteredClients.length}`;
-            
-            // Добавляем обработчики для кнопок просмотра
-            document.querySelectorAll('.view-client-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const clientId = parseInt(this.dataset.id);
-                    openViewClientModal(clientId);
-                });
-            });
-            
-            // Добавляем обработчики для кнопок редактирования
-            document.querySelectorAll('.edit-client-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const clientId = parseInt(this.dataset.id);
-                    openClientModal(clientId);
-                });
-            });
-        }
+            saveDataToStorage();
+            updateCompanyStatusesList();
+            updateCompanyStatusFilters();
+            renderCompanies();
+            crmElements.companyStatusName.value = '';
+            showNotification('Статус компании добавлен', 'success');
+        });
         
-        // Обновление пагинации
-        function updatePagination() {
+        // Обработка отправки формы добавления индустрии
+        crmElements.addIndustryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const industryName = crmElements.industryName.value.trim();
+            const industryValue = industryName.toLowerCase().replace(/\s+/g, '-');
+            
+            if (crmState.settings.industries.some(i => i.value === industryValue)) {
+                showNotification('Индустрия с таким значением уже существует', 'error');
+                return;
+            }
+            
+            crmState.settings.industries.push({
+                name: industryName,
+                value: industryValue
+            });
+            
+            saveDataToStorage();
+            updateIndustriesList();
+            updateIndustryFilters();
+            renderCompanies();
+            crmElements.industryName.value = '';
+            showNotification('Индустрия добавлена', 'success');
+        });
+        
+        // Обработка отправки формы взаимодействия
+        crmElements.interactionForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const clientId = parseInt(crmElements.interactionClientId.value);
+            const clientIndex = crmState.clients.findIndex(c => c.id === clientId);
+            
+            if (clientIndex === -1) return;
+            
+            const interaction = {
+                type: crmElements.interactionType.value,
+                comment: crmElements.interactionComment.value.trim(),
+                date: new Date().toISOString()
+            };
+            
+            crmState.clients[clientIndex].interactions.push(interaction);
+            saveDataToStorage();
+            
+            // Обновляем историю взаимодействий
+            renderClientInteractions(crmState.clients[clientIndex].interactions);
+            
+            // Очищаем форму
+            crmElements.interactionComment.value = '';
+            
+            showNotification('Взаимодействие добавлено', 'success');
+        });
+        
+        // Фильтрация клиентов
+        crmElements.statusFilter.addEventListener('change', function() {
+            crmState.statusFilter = this.value;
+            crmState.currentPage = 1;
+            renderClients();
+            updatePagination();
+        });
+        
+        crmElements.sourceFilter.addEventListener('change', function() {
+            crmState.sourceFilter = this.value;
+            crmState.currentPage = 1;
+            renderClients();
+            updatePagination();
+        });
+        
+        crmElements.companyFilter.addEventListener('change', function() {
+            crmState.companyFilter = this.value;
+            crmState.currentPage = 1;
+            renderClients();
+            updatePagination();
+        });
+        
+        crmElements.search.addEventListener('input', function() {
+            crmState.searchQuery = this.value.toLowerCase();
+            crmState.currentPage = 1;
+            renderClients();
+            updatePagination();
+        });
+        
+        // Фильтрация компаний
+        crmElements.companyStatusFilter.addEventListener('change', function() {
+            crmState.companyStatusFilter = this.value;
+            crmState.currentCompanyPage = 1;
+            renderCompanies();
+            updateCompanyPagination();
+        });
+        
+        crmElements.industryFilter.addEventListener('change', function() {
+            crmState.industryFilter = this.value;
+            crmState.currentCompanyPage = 1;
+            renderCompanies();
+            updateCompanyPagination();
+        });
+        
+        crmElements.companySearch.addEventListener('input', function() {
+            crmState.companySearchQuery = this.value.toLowerCase();
+            crmState.currentCompanyPage = 1;
+            renderCompanies();
+            updateCompanyPagination();
+        });
+        
+        // Пагинация клиентов
+        crmElements.prevPage.addEventListener('click', function() {
+            if (crmState.currentPage > 1) {
+                crmState.currentPage--;
+                renderClients();
+                updatePagination();
+            }
+        });
+        
+        crmElements.nextPage.addEventListener('click', function() {
             const filteredClients = getFilteredClients();
             const totalPages = Math.ceil(filteredClients.length / crmState.itemsPerPage);
             
-            // Обновляем информацию о странице
-            crmElements.pageInfo.textContent = `Страница ${crmState.currentPage} из ${totalPages || 1}`;
-            
-            // Обновляем состояние кнопок
-            crmElements.prevPage.disabled = crmState.currentPage <= 1;
-            crmElements.nextPage.disabled = crmState.currentPage >= totalPages;
-        }
-        
-        // Обновление статистики
-        function updateStatistics() {
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
-            
-            // Общее количество клиентов
-            crmElements.totalClients.textContent = crmState.clients.length;
-            
-            // Клиенты по статусам
-            crmElements.newClients.textContent = crmState.clients.filter(c => c.status === 'new').length;
-            crmElements.activeClients.textContent = crmState.clients.filter(c => c.status === 'contacted' || c.status === 'negotiation').length;
-            crmElements.proposalClients.textContent = crmState.clients.filter(c => c.status === 'proposal').length;
-            crmElements.closedClients.textContent = crmState.clients.filter(c => c.status === 'closed').length;
-        }
-        
-        // Получение класса для статуса
-        function getStatusClass(status) {
-            switch(status) {
-                case 'new': return 'bg-gray-100 text-gray-800';
-                case 'contacted': return 'bg-blue-100 text-blue-800';
-                case 'proposal': return 'bg-yellow-100 text-yellow-800';
-                case 'negotiation': return 'bg-purple-100 text-purple-800';
-                case 'closed': return 'bg-green-100 text-green-800';
-                default: return 'bg-gray-100 text-gray-800';
+            if (crmState.currentPage < totalPages) {
+                crmState.currentPage++;
+                renderClients();
+                updatePagination();
             }
-        }
+        });
         
-        // Получение названия статуса
-        function getStatusName(status) {
-            switch(status) {
-                case 'new': return 'Новый';
-                case 'contacted': return 'Контакт';
-                case 'proposal': return 'Предложение';
-                case 'negotiation': return 'Переговоры';
-                case 'closed': return 'Закрыт';
-                default: return status;
+        // Пагинация компаний
+        crmElements.prevCompanyPage.addEventListener('click', function() {
+            if (crmState.currentCompanyPage > 1) {
+                crmState.currentCompanyPage--;
+                renderCompanies();
+                updateCompanyPagination();
             }
-        }
+        });
         
-        // Получение названия источника
-        function getSourceName(source) {
-            switch(source) {
-                case 'website': return 'Сайт';
-                case 'social': return 'Соцсети';
-                case 'recommendation': return 'Рекомендация';
-                case 'ad': return 'Реклама';
-                case 'other': return 'Другое';
-                default: return source;
+        crmElements.nextCompanyPage.addEventListener('click', function() {
+            const filteredCompanies = getFilteredCompanies();
+            const totalPages = Math.ceil(filteredCompanies.length / crmState.itemsPerPage);
+            
+            if (crmState.currentCompanyPage < totalPages) {
+                crmState.currentCompanyPage++;
+                renderCompanies();
+                updateCompanyPagination();
             }
+        });
+        
+        // Клик вне модального окна для закрытия
+        window.addEventListener('click', function(e) {
+            if (e.target === crmElements.clientModal) {
+                crmElements.clientModal.classList.add('hidden');
+            }
+            if (e.target === crmElements.viewClientModal) {
+                crmElements.viewClientModal.classList.add('hidden');
+            }
+            if (e.target === crmElements.companyModal) {
+                crmElements.companyModal.classList.add('hidden');
+            }
+            if (e.target === crmElements.viewCompanyModal) {
+                crmElements.viewCompanyModal.classList.add('hidden');
+            }
+            if (e.target === crmElements.settingsModal) {
+                crmElements.settingsModal.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Переключение табов
+    function switchTab(tab) {
+        crmState.currentTab = tab;
+        
+        // Обновляем активные кнопки табов
+        crmElements.tabBtns.forEach(btn => {
+            if (btn.dataset.tab === tab) {
+                btn.classList.add('text-blue-500', 'border-blue-500');
+                btn.classList.remove('text-gray-500', 'hover:text-gray-700');
+            } else {
+                btn.classList.remove('text-blue-500', 'border-blue-500');
+                btn.classList.add('text-gray-500', 'hover:text-gray-700');
+            }
+        });
+        
+        // Показываем соответствующий контент
+        document.querySelectorAll('.tab-content').forEach(content => {
+            if (content.id === `${tab}-tab`) {
+                content.classList.add('active');
+            } else {
+                content.classList.remove('active');
+            }
+        });
+        
+        // Обновляем статистику и данные
+        updateStatistics();
+        
+        if (tab === 'clients') {
+            renderClients();
+            updatePagination();
+        } else {
+            renderCompanies();
+            updateCompanyPagination();
+        }
+    }
+    
+    // Открытие модального окна клиента
+    function openClientModal(clientId = null) {
+        if (clientId) {
+            // Редактирование существующего клиента
+            const client = crmState.clients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            crmElements.modalTitle.textContent = 'Редактировать клиента';
+            crmElements.clientId.value = client.id;
+            crmElements.clientName.value = client.name;
+            crmElements.clientCompany.value = client.companyId || '';
+            crmElements.clientPhone.value = client.phone;
+            crmElements.clientEmail.value = client.email || '';
+            crmElements.clientSource.value = client.source;
+            crmElements.clientStatus.value = client.status;
+            crmElements.clientNotes.value = client.notes || '';
+        } else {
+            // Добавление нового клиента
+            crmElements.modalTitle.textContent = 'Новый клиент';
+            crmElements.clientId.value = '';
+            crmElements.clientForm.reset();
         }
         
-        // Показать уведомление
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg text-white ${
-                type === 'success' ? 'bg-green-500' : 'bg-red-500'
-            } animate-bounce`;
-            notification.innerHTML = `
-                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i>
-                ${message}
+        crmElements.clientModal.classList.remove('hidden');
+    }
+    
+    // Открытие модального окна просмотра клиента
+    function openViewClientModal(clientId) {
+        const client = crmState.clients.find(c => c.id === clientId);
+        if (!client) return;
+        
+        crmState.viewClientId = clientId;
+        crmElements.interactionClientId.value = clientId;
+        
+        // Заполняем данные клиента
+        crmElements.viewClientName.textContent = client.name;
+        crmElements.viewClientFullname.textContent = client.name;
+        
+        const company = client.companyId ? crmState.companies.find(c => c.id === client.companyId) : null;
+        crmElements.viewClientCompany.textContent = company ? company.name : 'Не указана';
+        
+        crmElements.viewClientPhone.textContent = client.phone;
+        crmElements.viewClientEmail.textContent = client.email || 'Не указан';
+        crmElements.viewClientSource.textContent = getSourceName(client.source);
+        crmElements.viewClientCreated.textContent = formatDate(client.createdAt);
+        
+        // Устанавливаем статус
+        const status = crmState.settings.statuses.find(s => s.value === client.status);
+        if (status) {
+            crmElements.viewClientStatus.textContent = status.name;
+            crmElements.viewClientStatus.className = 'px-2 py-1 rounded-full text-xs';
+            crmElements.viewClientStatus.style.backgroundColor = `${status.color}20`;
+            crmElements.viewClientStatus.style.color = status.color;
+            crmElements.viewClientStatus.style.border = `1px solid ${status.color}`;
+        }
+        
+        // Заметки
+        crmElements.viewClientNotes.textContent = client.notes || 'Нет заметок';
+        
+        // Аватар
+        const initials = getInitials(client.name);
+        crmElements.clientAvatar.textContent = initials;
+        
+        // История взаимодействий
+        renderClientInteractions(client.interactions);
+        
+        // Показываем модальное окно
+        crmElements.viewClientModal.classList.remove('hidden');
+    }
+    
+    // Открытие модального окна компании
+    function openCompanyModal(companyId = null) {
+        if (companyId) {
+            // Редактирование существующей компании
+            const company = crmState.companies.find(c => c.id === companyId);
+            if (!company) return;
+            
+            crmElements.companyModalTitle.textContent = 'Редактировать компанию';
+            crmElements.companyId.value = company.id;
+            crmElements.companyName.value = company.name;
+            crmElements.companyIndustry.value = company.industry || '';
+            crmElements.companyPhone.value = company.phone || '';
+            crmElements.companyEmail.value = company.email || '';
+            crmElements.companyWebsite.value = company.website || '';
+            crmElements.companyStatus.value = company.status;
+            crmElements.companyAddress.value = company.address || '';
+            crmElements.companyDescription.value = company.description || '';
+        } else {
+            // Добавление новой компании
+            crmElements.companyModalTitle.textContent = 'Новая компания';
+            crmElements.companyId.value = '';
+            crmElements.companyForm.reset();
+        }
+        
+        crmElements.companyModal.classList.remove('hidden');
+    }
+    
+    // Открытие модального окна просмотра компании
+    function openViewCompanyModal(companyId) {
+        const company = crmState.companies.find(c => c.id === companyId);
+        if (!company) return;
+        
+        crmState.viewCompanyId = companyId;
+        
+        // Заполняем данные компании
+        crmElements.viewCompanyName.textContent = company.name;
+        crmElements.viewCompanyFullname.textContent = company.name;
+        
+        const industry = crmState.settings.industries.find(i => i.value === company.industry);
+        crmElements.viewCompanyIndustry.textContent = industry ? industry.name : 'Не указана';
+        
+        crmElements.viewCompanyPhone.textContent = company.phone || 'Не указан';
+        crmElements.viewCompanyEmail.textContent = company.email || 'Не указан';
+        crmElements.viewCompanyWebsite.textContent = company.website || 'Не указан';
+        crmElements.viewCompanyCreated.textContent = formatDate(company.createdAt);
+        crmElements.viewCompanyDescription.textContent = company.description || 'Нет описания';
+        crmElements.viewCompanyAddress.textContent = company.address || 'Не указан';
+        
+        // Устанавливаем статус
+        const status = crmState.settings.companyStatuses.find(s => s.value === company.status);
+        if (status) {
+            crmElements.viewCompanyStatus.textContent = status.name;
+            crmElements.viewCompanyStatus.className = 'px-2 py-1 rounded-full text-xs';
+            crmElements.viewCompanyStatus.style.backgroundColor = `${status.color}20`;
+            crmElements.viewCompanyStatus.style.color = status.color;
+            crmElements.viewCompanyStatus.style.border = `1px solid ${status.color}`;
+        }
+        
+        // Аватар
+        const initials = getInitials(company.name);
+        crmElements.companyAvatar.textContent = initials;
+        
+        // Сотрудники
+        renderCompanyEmployees(companyId);
+        
+        // Показываем модальное окно
+        crmElements.viewCompanyModal.classList.remove('hidden');
+    }
+    
+    // Открытие модального окна настроек
+    function openSettingsModal() {
+        // Обновляем списки в настройках
+        updateStatusesList();
+        updateSourcesList();
+        updateCompanyStatusesList();
+        updateIndustriesList();
+        
+        crmElements.settingsModal.classList.remove('hidden');
+    }
+    
+    // Рендеринг списка клиентов
+    function renderClients() {
+        const filteredClients = getFilteredClients();
+        const startIndex = (crmState.currentPage - 1) * crmState.itemsPerPage;
+        const paginatedClients = filteredClients.slice(startIndex, startIndex + crmState.itemsPerPage);
+        
+        crmElements.clientsList.innerHTML = '';
+        
+        if (paginatedClients.length === 0) {
+            crmElements.clientsList.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p>Клиенты не найдены</p>
+                    </td>
+                </tr>
             `;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.classList.remove('animate-bounce');
-                notification.classList.add('opacity-0', 'transition-opacity', 'duration-500');
-                setTimeout(() => notification.remove(), 500);
-            }, 3000);
+            return;
         }
         
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', initCRM);
-    </script>
+        paginatedClients.forEach(client => {
+            const company = client.companyId ? crmState.companies.find(c => c.id === client.companyId) : null;
+            const status = crmState.settings.statuses.find(s => s.value === client.status);
+            const source = crmState.settings.sources.find(s => s.value === client.source);
+            
+            const clientRow = document.createElement('tr');
+            clientRow.className = 'hover:bg-gray-50';
+            clientRow.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">
+                            ${getInitials(client.name)}
+                        </div>
+                        <div class="ml-4">
+                            <div class="font-medium text-gray-900">${client.name}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-gray-900">${client.phone}</div>
+                    ${client.email ? `<div class="text-gray-500 text-sm">${client.email}</div>` : ''}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-gray-900">${company ? company.name : '—'}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    ${status ? `
+                    <span class="px-2 py-1 rounded-full text-xs" style="background-color: ${status.color}20; color: ${status.color}; border: 1px solid ${status.color}">
+                        ${status.name}
+                    </span>
+                    ` : ''}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-gray-900 capitalize">${source ? source.name : ''}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${formatDate(client.createdAt)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button class="text-blue-600 hover:text-blue-900 view-client-btn mr-3" data-id="${client.id}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="text-green-600 hover:text-green-900 edit-client-btn mr-3" data-id="${client.id}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-red-600 hover:text-red-900 delete-client-btn" data-id="${client.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            crmElements.clientsList.appendChild(clientRow);
+        });
+        
+        // Добавляем обработчики для кнопок
+        document.querySelectorAll('.view-client-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const clientId = parseInt(this.dataset.id);
+                openViewClientModal(clientId);
+            });
+        });
+        
+        document.querySelectorAll('.edit-client-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const clientId = parseInt(this.dataset.id);
+                openClientModal(clientId);
+            });
+        });
+        
+        document.querySelectorAll('.delete-client-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const clientId = parseInt(this.dataset.id);
+                deleteClient(clientId);
+            });
+        });
+        
+        // Обновляем счетчик
+        crmElements.clientsCount.textContent = `Показано ${paginatedClients.length} из ${filteredClients.length}`;
+    }
+    
+    // Рендеринг списка компаний
+    function renderCompanies() {
+        const filteredCompanies = getFilteredCompanies();
+        const startIndex = (crmState.currentCompanyPage - 1) * crmState.itemsPerPage;
+        const paginatedCompanies = filteredCompanies.slice(startIndex, startIndex + crmState.itemsPerPage);
+        
+        crmElements.companiesList.innerHTML = '';
+        
+        if (paginatedCompanies.length === 0) {
+            crmElements.companiesList.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p>Компании не найдены</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        paginatedCompanies.forEach(company => {
+            const industry = crmState.settings.industries.find(i => i.value === company.industry);
+            const status = crmState.settings.companyStatuses.find(s => s.value === company.status);
+            
+            const companyRow = document.createElement('tr');
+            companyRow.className = 'hover:bg-gray-50';
+            companyRow.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 font-bold">
+                            ${getInitials(company.name)}
+                        </div>
+                        <div class="ml-4">
+                            <div class="font-medium text-gray-900">${company.name}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-gray-900">${company.phone || '—'}</div>
+                    ${company.email ? `<div class="text-gray-500 text-sm">${company.email}</div>` : ''}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-gray-900 capitalize">${industry ? industry.name : 'Не указана'}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    ${status ? `
+                    <span class="px-2 py-1 rounded-full text-xs" style="background-color: ${status.color}20; color: ${status.color}; border: 1px solid ${status.color}">
+                        ${status.name}
+                    </span>
+                    ` : ''}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${formatDate(company.createdAt)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button class="text-blue-600 hover:text-blue-900 view-company-btn mr-3" data-id="${company.id}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="text-green-600 hover:text-green-900 edit-company-btn mr-3" data-id="${company.id}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-red-600 hover:text-red-900 delete-company-btn" data-id="${company.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            crmElements.companiesList.appendChild(companyRow);
+        });
+        
+        // Добавляем обработчики для кнопок
+        document.querySelectorAll('.view-company-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const companyId = parseInt(this.dataset.id);
+                openViewCompanyModal(companyId);
+            });
+        });
+        
+        document.querySelectorAll('.edit-company-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const companyId = parseInt(this.dataset.id);
+                openCompanyModal(companyId);
+            });
+        });
+        
+        document.querySelectorAll('.delete-company-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const companyId = parseInt(this.dataset.id);
+                deleteCompany(companyId);
+            });
+        });
+        
+        // Обновляем счетчик
+        crmElements.companiesCount.textContent = `Показано ${paginatedCompanies.length} из ${filteredCompanies.length}`;
+    }
+    
+    // Рендеринг истории взаимодействий клиента
+    function renderClientInteractions(interactions) {
+        crmElements.clientHistory.innerHTML = '';
+        
+        if (!interactions || interactions.length === 0) {
+            crmElements.clientHistory.innerHTML = `
+                <div class="bg-gray-50 p-4 rounded-lg text-gray-500">
+                    Нет истории взаимодействий
+                </div>
+            `;
+            return;
+        }
+        
+        // Сортируем по дате (новые сверху)
+        const sortedInteractions = [...interactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        sortedInteractions.forEach((interaction, index) => {
+            const interactionElement = document.createElement('div');
+            interactionElement.className = 'relative timeline-item pl-10';
+            
+            let icon = '';
+            let iconBg = 'bg-blue-100';
+            let iconColor = 'text-blue-500';
+            
+            switch (interaction.type) {
+                case 'call':
+                    icon = 'fa-phone';
+                    iconBg = 'bg-green-100';
+                    iconColor = 'text-green-500';
+                    break;
+                case 'meeting':
+                    icon = 'fa-handshake';
+                    iconBg = 'bg-purple-100';
+                    iconColor = 'text-purple-500';
+                    break;
+                case 'email':
+                    icon = 'fa-envelope';
+                    iconBg = 'bg-yellow-100';
+                    iconColor = 'text-yellow-500';
+                    break;
+                case 'message':
+                    icon = 'fa-comment';
+                    iconBg = 'bg-indigo-100';
+                    iconColor = 'text-indigo-500';
+                    break;
+                case 'created':
+                    icon = 'fa-user-plus';
+                    break;
+                case 'updated':
+                    icon = 'fa-sync-alt';
+                    break;
+                default:
+                    icon = 'fa-info-circle';
+            }
+            
+            interactionElement.innerHTML = `
+                <div class="absolute left-0 top-0 w-8 h-8 rounded-full ${iconBg} flex items-center justify-center ${iconColor}">
+                    <i class="fas ${icon}"></i>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-medium">${getInteractionTitle(interaction.type)}</div>
+                            <div class="text-sm text-gray-500">${formatDateTime(interaction.date)}</div>
+                        </div>
+                    </div>
+                    ${interaction.comment ? `<div class="mt-2 text-gray-700">${interaction.comment}</div>` : ''}
+                </div>
+            `;
+            
+            crmElements.clientHistory.appendChild(interactionElement);
+        });
+    }
+    
+    // Рендеринг сотрудников компании
+    function renderCompanyEmployees(companyId) {
+        crmElements.companyEmployees.innerHTML = '';
+        
+        const employees = crmState.clients.filter(client => client.companyId === companyId);
+        
+        if (employees.length === 0) {
+            crmElements.companyEmployees.innerHTML = `
+                <div class="bg-gray-50 p-4 rounded-lg text-gray-500">
+                    Нет сотрудников
+                </div>
+            `;
+            return;
+        }
+        
+        employees.forEach(employee => {
+            const status = crmState.settings.statuses.find(s => s.value === employee.status);
+            
+            const employeeElement = document.createElement('div');
+            employeeElement.className = 'bg-gray-50 p-4 rounded-lg';
+            employeeElement.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold mr-3">
+                            ${getInitials(employee.name)}
+                        </div>
+                        <div>
+                            <div class="font-medium">${employee.name}</div>
+                            <div class="text-sm text-gray-500">${employee.phone}</div>
+                        </div>
+                    </div>
+                    <div>
+                        ${status ? `
+                        <span class="px-2 py-1 rounded-full text-xs" style="background-color: ${status.color}20; color: ${status.color}; border: 1px solid ${status.color}">
+                            ${status.name}
+                        </span>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            employeeElement.addEventListener('click', () => {
+                openViewClientModal(employee.id);
+            });
+            employeeElement.style.cursor = 'pointer';
+            
+            crmElements.companyEmployees.appendChild(employeeElement);
+        });
+    }
+    
+    // Удаление клиента
+    function deleteClient(clientId) {
+        if (confirm('Вы уверены, что хотите удалить этого клиента?')) {
+            crmState.clients = crmState.clients.filter(c => c.id !== clientId);
+            saveDataToStorage();
+            renderClients();
+            updateStatistics();
+            updatePagination();
+            showNotification('Клиент удалён', 'success');
+        }
+    }
+    
+    // Удаление компании
+    function deleteCompany(companyId) {
+        // Проверяем, есть ли клиенты, связанные с этой компанией
+        const hasEmployees = crmState.clients.some(c => c.companyId === companyId);
+        
+        if (hasEmployees) {
+            showNotification('Нельзя удалить компанию, у которой есть клиенты', 'error');
+            return;
+        }
+        
+        if (confirm('Вы уверены, что хотите удалить эту компанию?')) {
+            crmState.companies = crmState.companies.filter(c => c.id !== companyId);
+            saveDataToStorage();
+            renderCompanies();
+            updateCompanyFilters();
+            updateStatistics();
+            updateCompanyPagination();
+            showNotification('Компания удалена', 'success');
+        }
+    }
+    
+    // Получение отфильтрованных клиентов
+    function getFilteredClients() {
+        let filteredClients = [...crmState.clients];
+        
+        // Фильтрация по статусу
+        if (crmState.statusFilter !== 'all') {
+            filteredClients = filteredClients.filter(c => c.status === crmState.statusFilter);
+        }
+        
+        // Фильтрация по источнику
+        if (crmState.sourceFilter !== 'all') {
+            filteredClients = filteredClients.filter(c => c.source === crmState.sourceFilter);
+        }
+        
+        // Фильтрация по компании
+        if (crmState.companyFilter !== 'all') {
+            filteredClients = filteredClients.filter(c => c.companyId === parseInt(crmState.companyFilter));
+        }
+        
+        // Поиск
+        if (crmState.searchQuery) {
+            filteredClients = filteredClients.filter(c => 
+                c.name.toLowerCase().includes(crmState.searchQuery) ||
+                c.phone.toLowerCase().includes(crmState.searchQuery) ||
+                (c.email && c.email.toLowerCase().includes(crmState.searchQuery))
+            );
+        }
+        
+        // Сортировка по дате (новые сверху)
+        filteredClients.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        return filteredClients;
+    }
+    
+    // Получение отфильтрованных компаний
+    function getFilteredCompanies() {
+        let filteredCompanies = [...crmState.companies];
+        
+        // Фильтрация по статусу
+        if (crmState.companyStatusFilter !== 'all') {
+            filteredCompanies = filteredCompanies.filter(c => c.status === crmState.companyStatusFilter);
+        }
+        
+        // Фильтрация по индустрии
+        if (crmState.industryFilter !== 'all') {
+            filteredCompanies = filteredCompanies.filter(c => c.industry === crmState.industryFilter);
+        }
+        
+        // Поиск
+        if (crmState.companySearchQuery) {
+            filteredCompanies = filteredCompanies.filter(c => 
+                c.name.toLowerCase().includes(crmState.companySearchQuery) ||
+                (c.phone && c.phone.toLowerCase().includes(crmState.companySearchQuery)) ||
+                (c.email && c.email.toLowerCase().includes(crmState.companySearchQuery))
+            );
+        }
+        
+        // Сортировка по дате (новые сверху)
+        filteredCompanies.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        return filteredCompanies;
+    }
+    
+    // Обновление пагинации клиентов
+    function updatePagination() {
+        const filteredClients = getFilteredClients();
+        const totalPages = Math.ceil(filteredClients.length / crmState.itemsPerPage);
+        
+        crmElements.pageInfo.textContent = `Страница ${crmState.currentPage} из ${totalPages}`;
+        crmElements.prevPage.disabled = crmState.currentPage <= 1;
+        crmElements.nextPage.disabled = crmState.currentPage >= totalPages;
+    }
+    
+    // Обновление пагинации компаний
+    function updateCompanyPagination() {
+        const filteredCompanies = getFilteredCompanies();
+        const totalPages = Math.ceil(filteredCompanies.length / crmState.itemsPerPage);
+        
+        crmElements.companyPageInfo.textContent = `Страница ${crmState.currentCompanyPage} из ${totalPages}`;
+        crmElements.prevCompanyPage.disabled = crmState.currentCompanyPage <= 1;
+        crmElements.nextCompanyPage.disabled = crmState.currentCompanyPage >= totalPages;
+    }
+    
+    // Обновление статистики
+    function updateStatistics() {
+        // Клиенты
+        crmElements.totalClients.textContent = crmState.clients.length;
+        
+        const newClientsCount = crmState.clients.filter(c => c.status === 'new').length;
+        crmElements.newClients.textContent = newClientsCount;
+        
+        const activeClientsCount = crmState.clients.filter(c => c.status === 'contacted').length;
+        crmElements.activeClients.textContent = activeClientsCount;
+        
+        const proposalClientsCount = crmState.clients.filter(c => c.status === 'proposal').length;
+        crmElements.proposalClients.textContent = proposalClientsCount;
+        
+        const closedClientsCount = crmState.clients.filter(c => c.status === 'closed').length;
+        crmElements.closedClients.textContent = closedClientsCount;
+        
+        // Компании
+        crmElements.totalCompanies.textContent = crmState.companies.length;
+        
+        const activeCompaniesCount = crmState.companies.filter(c => c.status === 'active').length;
+        crmElements.activeCompanies.textContent = activeCompaniesCount;
+        
+        const partnerCompaniesCount = crmState.companies.filter(c => c.status === 'partner').length;
+        crmElements.partnerCompanies.textContent = partnerCompaniesCount;
+        
+        const inactiveCompaniesCount = crmState.companies.filter(c => c.status === 'inactive').length;
+        crmElements.inactiveCompanies.textContent = inactiveCompaniesCount;
+    }
+    
+    // Показать уведомление
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-md text-white ${
+            type === 'success' ? 'bg-green-500' : 
+            type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    // Вспомогательные функции
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU');
+    }
+    
+    function formatDateTime(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('ru-RU');
+    }
+    
+    function getInitials(name) {
+        return name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0, 2);
+    }
+    
+    function getSourceName(sourceValue) {
+        const source = crmState.settings.sources.find(s => s.value === sourceValue);
+        return source ? source.name : '';
+    }
+    
+    function getInteractionTitle(type) {
+        switch (type) {
+            case 'call': return 'Звонок';
+            case 'meeting': return 'Встреча';
+            case 'email': return 'Email';
+            case 'message': return 'Сообщение';
+            case 'created': return 'Клиент добавлен в систему';
+            case 'updated': return 'Данные клиента обновлены';
+            default: return 'Взаимодействие';
+        }
+    }
+    
+    // Инициализация приложения при загрузке страницы
+    document.addEventListener('DOMContentLoaded', initCRM);
+</script>
 </body>
+               
 </html>
